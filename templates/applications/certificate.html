@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block title %}Certificate — #{{ application.id }}{% endblock %}
+{% block page_title %}Issued Certificate{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+  .sidebar, .topbar, .no-print { display: none !important; }
+  .main-content { margin: 0 !important; padding: 0 !important; }
+  .cert-wrapper { box-shadow: none !important; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+
+    <!-- Back + Print buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+      <a href="{% url 'track_applications' %}" style="color:#c9992a;text-decoration:none;font-size:0.83rem;">
+        <i class="fas fa-arrow-left me-1"></i> Back to My Applications
+      </a>
+      <button onclick="window.print()" class="btn btn-sm" style="background:#0d2137;color:#fff;border-radius:8px;font-size:0.82rem;padding:7px 18px;">
+        <i class="fas fa-print me-2"></i>Print / Save as PDF
+      </button>
+    </div>
+
+    <!-- Certificate Card -->
+    <div class="cert-wrapper" style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);">
+
+      <!-- Top gold strip -->
+      <div style="height:8px;background:linear-gradient(90deg,#c9992a,#e8b84b,#c9992a);"></div>
+
+      <!-- Header -->
+      <div style="background:#0d2137;padding:28px 36px;display:flex;align-items:center;gap:20px;">
+        <div style="width:72px;height:72px;background:#c9992a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;border:3px solid rgba(255,255,255,0.2);">🏛</div>
+        <div>
+          <div style="color:rgba(255,255,255,0.6);font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px;">Government of India — Revenue Department</div>
+          <div style="color:#fff;font-family:'Noto Serif',serif;font-size:1.4rem;font-weight:700;line-height:1.2;">{{ application.get_certificate_type_display }}</div>
+          <div style="color:#c9992a;font-size:0.78rem;margin-top:4px;font-weight:600;">Certificate No: CERT/MP/{{ application.submitted_date|date:"Y" }}/{{ application.id|stringformat:"04d" }}</div>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+          <div style="background:#166534;color:#fff;padding:6px 16px;border-radius:20px;font-size:0.75rem;font-weight:700;letter-spacing:0.05em;">✓ VERIFIED & ISSUED</div>
+          <div style="color:rgba(255,255,255,0.5);font-size:0.72rem;margin-top:8px;">Issued: {{ application.processed_date|date:"d F Y" }}</div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div style="padding:32px 36px;">
+
+        <!-- To Whom It May Concern -->
+        <div style="text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:1px dashed #e2e8f0;">
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;">To Whom It May Concern</div>
+          <p style="font-size:0.95rem;color:#374151;line-height:1.8;margin:0;">
+            This is to certify that <strong style="color:#0d2137;">{{ application.applicant_name }}</strong>,
+            Son/Daughter of
+            <strong style="color:#0d2137;">
+              {% if application.father_name %}{{ application.father_name }}
+              {% elif application.birth_father_name %}{{ application.birth_father_name }}
+              {% else %}—{% endif %}
+            </strong>,
+            residing at <strong style="color:#0d2137;">{{ application.applicant_address }}</strong>,
+            has been verified and the following certificate is hereby issued by the Revenue Department,
+            Government of India.
+          </p>
+        </div>
+
+        <!-- Certificate Details Grid -->
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:16px;">Certificate Details</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+          <div style="background:#f8fafc;border-radius:10px;padding:14px 18px;border:1px solid #e8edf2;">
+            <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Full Name</div>
+            <div style="font-weight:700;color:#0d2137;font-size:0.92rem;">{{ application.applicant_name }}</div>
+          </div>
+          <div style="background:#f8fafc;border-radius:10px;padding:14px 18px;border:1px solid #e8edf2;">
+            <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Date of Birth</div>
+            <div style="font-weight:700;color:#0d2137;font-size:0.92rem;">{{ application.applicant_dob|date:"d F Y" }}</div>
+          </div>
+          <div style="background:#f8fafc;border-radius:10px;padding:14px 18px;border:1px solid #e8edf2;">
+            <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Gender</div>
+            <div style="font-weight:700;color:#0d2137;font-size:0.92rem;">{{ application.applicant_gender }}</div>
+          </div>
+          <div style="background:#f8fafc;border-radius:10px;padding:14px 18px;border:1px solid #e8edf2;">
+            <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Aadhaar Number</div>
+            <div style="font-weight:700;color:#0d2137;font-size:0.92rem;">XXXX-XXXX-{{ application.aadhar_number|slice:"-4:" }}</div>
+          </div>
+          <div style="background:#f8fafc;border-radius:10px;padding:14px 18px;border:1px solid #e8edf2;grid-column:span 2;">
+            <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Permanent Address</div>
+            <div style="font-weight:700;color:#0d2137;font-size:0.92rem;">{{ application.applicant_address }}</div>
+          </div>
+
+          {% if application.certificate_type == 'CASTE' %}
+          <div style="background:#fef3c7;border-radius:10px;padding:14px 18px;border:1px solid #fde68a;">
+            <div style="font-size:0.7rem;color:#92400e;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Caste</div>
+            <div style="font-weight:700;color:#92400e;font-size:0.92rem;">{{ application.caste_name }}</div>
+          </div>
+          <div style="background:#fef3c7;border-radius:10px;padding:14px 18px;border:1px solid #fde68a;">
+            <div style="font-size:0.7rem;color:#92400e;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Category</div>
+            <div style="font-weight:700;color:#92400e;font-size:0.92rem;">{{ application.caste_category }}</div>
+          </div>
+          {% elif application.certificate_type == 'INCOME' %}
+          <div style="background:#dcfce7;border-radius:10px;padding:14px 18px;border:1px solid #bbf7d0;">
+            <div style="font-size:0.7rem;color:#166534;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Annual Income</div>
+            <div style="font-weight:700;color:#166534;font-size:0.92rem;">₹ {{ application.annual_income }}</div>
+          </div>
+          <div style="background:#dcfce7;border-radius:10px;padding:14px 18px;border:1px solid #bbf7d0;">
+            <div style="font-size:0.7rem;color:#166534;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Occupation</div>
+            <div style="font-weight:700;color:#166534;font-size:0.92rem;">{{ application.occupation }}</div>
+          </div>
+          {% elif application.certificate_type == 'BIRTH' %}
+          <div style="background:#dbeafe;border-radius:10px;padding:14px 18px;border:1px solid #bfdbfe;">
+            <div style="font-size:0.7rem;color:#1e3a8a;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Place of Birth</div>
+            <div style="font-weight:700;color:#1e3a8a;font-size:0.92rem;">{{ application.birth_place }}</div>
+          </div>
+          <div style="background:#dbeafe;border-radius:10px;padding:14px 18px;border:1px solid #bfdbfe;">
+            <div style="font-size:0.7rem;color:#1e3a8a;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Mother's Name</div>
+            <div style="font-weight:700;color:#1e3a8a;font-size:0.92rem;">{{ application.mother_name }}</div>
+          </div>
+          {% elif application.certificate_type == 'DEATH' %}
+          <div style="background:#fce7f3;border-radius:10px;padding:14px 18px;border:1px solid #fbcfe8;">
+            <div style="font-size:0.7rem;color:#9f1239;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Name of Deceased</div>
+            <div style="font-weight:700;color:#9f1239;font-size:0.92rem;">{{ application.deceased_name }}</div>
+          </div>
+          <div style="background:#fce7f3;border-radius:10px;padding:14px 18px;border:1px solid #fbcfe8;">
+            <div style="font-size:0.7rem;color:#9f1239;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em;">Date of Death</div>
+            <div style="font-weight:700;color:#9f1239;font-size:0.92rem;">{{ application.death_date|date:"d F Y" }}</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Officer sign off -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:32px;padding-top:24px;border-top:1px dashed #e2e8f0;">
+          <!-- Left: Application reference -->
+          <div>
+            <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:4px;">Application Reference</div>
+            <div style="font-size:0.82rem;color:#374151;font-weight:600;">#{{ application.id }} — {{ application.get_certificate_type_display }}</div>
+            <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">Submitted: {{ application.submitted_date|date:"d F Y" }}</div>
+            <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">Issued: {{ application.processed_date|date:"d F Y" }}</div>
+          </div>
+          <!-- Center: Official seal -->
+          <div style="text-align:center;">
+            <div style="width:90px;height:90px;border:3px solid #c9992a;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 8px;background:#fff8ed;">
+              <i class="fas fa-shield-alt" style="color:#c9992a;font-size:1.6rem;"></i>
+              <div style="font-size:0.5rem;color:#92400e;font-weight:700;margin-top:3px;letter-spacing:0.05em;">GOVT. OF INDIA</div>
+            </div>
+            <div style="font-size:0.72rem;color:#94a3b8;font-weight:600;">Official Seal</div>
+          </div>
+          <!-- Right: Authorized signatory -->
+          <div style="text-align:right;">
+            <div style="width:180px;border-bottom:1.5px solid #0d2137;margin-bottom:8px;height:36px;margin-left:auto;">
+              <div style="font-style:italic;font-size:0.78rem;color:#94a3b8;text-align:center;padding-top:8px;">Digitally Authorized</div>
+            </div>
+            <div style="font-size:0.85rem;font-weight:700;color:#0d2137;">Revenue Department</div>
+            <div style="font-size:0.72rem;color:#64748b;">Government of India</div>
+            <div style="font-size:0.72rem;color:#64748b;">Certificate Issuance Authority</div>
+            <div style="margin-top:6px;display:inline-block;background:#0d2137;color:#c9992a;font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:4px;letter-spacing:0.08em;">VERIFIED & ISSUED</div>
+          </div>
+        </div>
+
+        <!-- Footer note -->
+        <div style="margin-top:20px;background:#f8fafc;border-radius:8px;padding:12px 16px;font-size:0.72rem;color:#94a3b8;text-align:center;border:1px solid #e8edf2;">
+          <i class="fas fa-info-circle me-1"></i>
+          This is a computer-generated certificate issued by the Certificate Monitoring System, Revenue Department. 
+          Certificate No: <strong>CERT/MP/{{ application.submitted_date|date:"Y" }}/{{ application.id|stringformat:"04d" }}</strong> — 
+          Issued on {{ application.processed_date|date:"d F Y" }}.
+        </div>
+
+      </div>
+
+      <!-- Bottom gold strip -->
+      <div style="height:6px;background:linear-gradient(90deg,#c9992a,#e8b84b,#c9992a);"></div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

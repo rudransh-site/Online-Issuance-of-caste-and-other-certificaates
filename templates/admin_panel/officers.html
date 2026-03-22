@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Manage Officers{% endblock %}
+{% block page_title %}Manage Officers{% endblock %}
+{% block active_officers %}active{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header-navy"><span><i class="fas fa-user-plus me-2"></i>Create Officer Account</span></div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:0.8rem;">First Name *</label>
+                        <input type="text" name="first_name" class="form-control" required style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:0.8rem;">Last Name</label>
+                        <input type="text" name="last_name" class="form-control" style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:0.8rem;">Username *</label>
+                        <input type="text" name="username" class="form-control" required style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:0.8rem;">Email</label>
+                        <input type="email" name="email" class="form-control" style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:0.8rem;">Designation</label>
+                        <input type="text" name="designation" class="form-control" value="Revenue Officer" style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold" style="font-size:0.8rem;">Password *</label>
+                        <input type="password" name="password" class="form-control" required style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                    </div>
+                    <button type="submit" class="btn btn-navy w-100 fw-bold" style="border-radius:8px;">
+                        <i class="fas fa-user-plus me-2"></i>Create Officer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header-navy">
+                <span><i class="fas fa-users me-2"></i>All Officers ({{ officers.count }})</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-clean mb-0">
+                        <thead>
+                            <tr><th>Officer</th><th>Designation</th><th>Workload</th><th>Rate</th><th>Status</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for officer in officers %}
+                            <tr>
+                                <td>
+                                    <div style="font-weight:600;font-size:0.82rem;">{{ officer.user.get_full_name|default:officer.user.username }}</div>
+                                    <div style="font-size:0.72rem;color:#94a3b8;">@{{ officer.user.username }}</div>
+                                    {% if officer.is_flagged %}<span class="badge bg-warning text-dark mt-1" style="font-size:0.6rem;"><i class="fas fa-star me-1"></i>High Performer</span>{% endif %}
+                                    {% if officer.admin_remarks %}<div style="font-size:0.7rem;color:#64748b;margin-top:2px;font-style:italic;">{{ officer.admin_remarks|truncatechars:40 }}</div>{% endif %}
+                                </td>
+                                <td style="font-size:0.78rem;color:#64748b;">{{ officer.designation }}</td>
+                                <td><span class="badge" style="background:#fef3c7;color:#92400e;">{{ officer.workload_count }}</span></td>
+                                <td style="font-size:0.82rem;font-weight:600;">{{ officer.get_completion_rate }}%</td>
+                                <td>
+                                    {% if officer.is_active %}
+                                    <span class="badge bg-success" style="font-size:0.65rem;">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-danger" style="font-size:0.65rem;">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1 flex-wrap">
+                                        <a href="{% url 'toggle_officer' officer.id %}"
+                                            class="btn btn-sm {% if officer.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                                            style="border-radius:6px;font-size:0.68rem;padding:3px 8px;">
+                                            {% if officer.is_active %}Deactivate{% else %}Activate{% endif %}
+                                        </a>
+                                        <button class="btn btn-sm btn-outline-warning" style="border-radius:6px;font-size:0.68rem;padding:3px 8px;"
+                                            onclick="document.getElementById('remarkModal{{ officer.id }}').style.display='flex'">
+                                            <i class="fas fa-comment"></i>
+                                        </button>
+                                        <a href="{% url 'flag_officer' officer.id %}"
+                                            class="btn btn-sm {% if officer.is_flagged %}btn-warning{% else %}btn-outline-secondary{% endif %}"
+                                            style="border-radius:6px;font-size:0.68rem;padding:3px 8px;"
+                                            onclick="return confirm('{% if officer.is_flagged %}Remove flag?{% else %}Flag as high performer?{% endif %}')">
+                                            <i class="fas fa-star"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Remark Modal -->
+                            <div id="remarkModal{{ officer.id }}" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+                                <div style="background:#fff;border-radius:14px;padding:28px;width:100%;max-width:400px;margin:20px;">
+                                    <h6 style="font-family:'Noto Serif',serif;margin-bottom:16px;">Add Remark for {{ officer.user.username }}</h6>
+                                    <form method="POST" action="{% url 'add_remark' officer.id %}">
+                                        {% csrf_token %}
+                                        <textarea name="remark" class="form-control mb-3" rows="3" placeholder="Enter remark..." style="border-radius:8px;font-size:0.85rem;">{{ officer.admin_remarks }}</textarea>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-navy flex-fill" style="border-radius:8px;font-size:0.82rem;">Save Remark</button>
+                                            <button type="button" class="btn btn-outline-secondary flex-fill" style="border-radius:8px;font-size:0.82rem;" onclick="document.getElementById('remarkModal{{ officer.id }}').style.display='none'">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center py-4 text-muted" style="font-size:0.85rem;">No officers created yet. Use the form on the left to create one.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

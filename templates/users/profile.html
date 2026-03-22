@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header-navy">
+                <span><i class="fas fa-user-circle me-2"></i>Profile Details</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <div style="width:72px;height:72px;background:#0d2137;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#c9992a;font-weight:900;margin:0 auto 12px;">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <h5 class="mb-0" style="font-family:'Noto Serif',serif;">{{ user.get_full_name|default:user.username }}</h5>
+                    <span class="badge bg-secondary mt-1">{{ user.get_role_display_name }}</span>
+                </div>
+                <table class="table table-borderless" style="font-size:0.85rem;">
+                    <tr><td class="fw-semibold text-muted" width="35%">Username</td><td>{{ user.username }}</td></tr>
+                    <tr><td class="fw-semibold text-muted">Email</td><td>{{ user.email|default:"—" }}</td></tr>
+                    <tr><td class="fw-semibold text-muted">Phone</td><td>{{ user.phone|default:"—" }}</td></tr>
+                    <tr><td class="fw-semibold text-muted">Address</td><td>{{ user.address|default:"—" }}</td></tr>
+                    <tr><td class="fw-semibold text-muted">Role</td><td>{{ user.get_role_display_name }}</td></tr>
+                    <tr><td class="fw-semibold text-muted">Joined</td><td>{{ user.date_joined|date:"d M Y" }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% if user.is_officer %}
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header-navy">
+                <span><i class="fas fa-chart-bar me-2"></i>Officer Statistics</span>
+            </div>
+            <div class="card-body p-4">
+                {% with profile=user.officer_profile %}
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="stat-card" style="background:#1e3a5f;">
+                            <div class="stat-label">Current Workload</div>
+                            <div class="stat-value">{{ profile.workload_count }}</div>
+                            <i class="fas fa-tasks stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card" style="background:#166534;">
+                            <div class="stat-label">Completion Rate</div>
+                            <div class="stat-value">{{ profile.get_completion_rate }}%</div>
+                            <i class="fas fa-chart-pie stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <table class="table table-borderless" style="font-size:0.85rem;">
+                    <tr><td class="fw-semibold text-muted" width="35%">Designation</td><td>{{ profile.designation }}</td></tr>
+                    <tr><td class="fw-semibold text-muted">Status</td><td>{% if profile.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td></tr>
+                    {% if profile.is_flagged %}<tr><td class="fw-semibold text-muted">Recognition</td><td><span class="badge bg-warning text-dark"><i class="fas fa-star me-1"></i>High Performer</span></td></tr>{% endif %}
+                    {% if profile.admin_remarks %}<tr><td class="fw-semibold text-muted">Admin Remarks</td><td>{{ profile.admin_remarks }}</td></tr>{% endif %}
+                </table>
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

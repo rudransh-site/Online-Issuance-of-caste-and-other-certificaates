@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load app_extras %}
+{% block title %}My Applications{% endblock %}
+{% block page_title %}Track My Applications{% endblock %}
+{% block active_track %}active{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:#0d2137;">
+      <div class="stat-label">Total</div>
+      <div class="stat-value">{{ total }}</div>
+      <i class="fas fa-folder stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:#166534;">
+      <div class="stat-label">Approved</div>
+      <div class="stat-value">{{ approved }}</div>
+      <i class="fas fa-check-circle stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:#92400e;">
+      <div class="stat-label">Pending</div>
+      <div class="stat-value">{{ pending }}</div>
+      <i class="fas fa-clock stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:#7f1d1d;">
+      <div class="stat-label">Rejected</div>
+      <div class="stat-value">{{ rejected }}</div>
+      <i class="fas fa-times-circle stat-icon"></i>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header-navy d-flex justify-content-between align-items-center">
+    <span><i class="fas fa-list me-2"></i>My Applications</span>
+    <a href="{% url 'choose_certificate' %}" class="btn btn-sm" style="background:#c9992a;color:#0d2137;font-weight:700;border-radius:6px;font-size:0.78rem;padding:5px 14px;">
+      <i class="fas fa-plus me-1"></i> New Application
+    </a>
+  </div>
+  <div class="card-body p-0">
+    {% if applications %}
+    <div class="table-responsive">
+      <table class="table table-clean mb-0">
+        <thead>
+          <tr>
+            <th>App ID</th>
+            <th>Certificate Type</th>
+            <th>Submitted</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Days Left</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in applications %}
+          <tr>
+            <td><strong>#{{ app.id }}</strong></td>
+            <td>{{ app.get_certificate_type_display }}</td>
+            <td style="font-size:0.82rem;color:#64748b;">{{ app.submitted_date|date:"d M Y" }}</td>
+            <td style="font-size:0.82rem;color:#64748b;">
+              {% if app.due_date %}{{ app.due_date|date:"d M Y" }}{% else %}—{% endif %}
+            </td>
+            <td>
+              {% if app.status == 'APPROVED' %}
+                <span class="badge" style="background:#dcfce7;color:#166534;border-radius:6px;font-size:0.72rem;padding:4px 10px;">✓ Approved</span>
+              {% elif app.status == 'REJECTED' %}
+                <span class="badge" style="background:#fee2e2;color:#7f1d1d;border-radius:6px;font-size:0.72rem;padding:4px 10px;">✗ Rejected</span>
+              {% elif app.status == 'OVERDUE' %}
+                <span class="badge" style="background:#fce7f3;color:#9f1239;border-radius:6px;font-size:0.72rem;padding:4px 10px;">⚠ Overdue</span>
+              {% elif app.status == 'ASSIGNED' %}
+                <span class="badge" style="background:#fef3c7;color:#92400e;border-radius:6px;font-size:0.72rem;padding:4px 10px;">⟳ Under Review</span>
+              {% else %}
+                <span class="badge" style="background:#dbeafe;color:#1e3a8a;border-radius:6px;font-size:0.72rem;padding:4px 10px;">◎ Submitted</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if app.days_remaining is not None %}
+                {% if app.days_remaining < 0 %}
+                  <span style="color:#9f1239;font-weight:700;font-size:0.82rem;">{{ app.days_remaining|abs_val }} days overdue</span>
+                {% elif app.days_remaining == 0 %}
+                  <span style="color:#c9992a;font-weight:700;font-size:0.82rem;">Due today!</span>
+                {% else %}
+                  <span style="color:#374151;font-size:0.82rem;">{{ app.days_remaining }} days</span>
+                {% endif %}
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% if app.status == 'APPROVED' %}
+              <a href="{% url 'view_certificate' app.id %}" class="btn btn-sm" style="background:#166534;color:#fff;border-radius:6px;font-size:0.75rem;padding:4px 12px;font-weight:600;">
+                <i class="fas fa-certificate me-1"></i>View Certificate
+              </a>
+              {% else %}
+              <a href="{% url 'application_detail' app.id %}" class="btn btn-sm" style="background:#f1f5f9;color:#374151;border-radius:6px;font-size:0.75rem;padding:4px 12px;">
+                View Details
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <i class="fas fa-folder-open" style="font-size:2.5rem;color:#cbd5e1;"></i>
+      <p class="text-muted mt-3 mb-1">No applications yet.</p>
+      <a href="{% url 'choose_certificate' %}" class="btn btn-sm mt-2" style="background:#0d2137;color:#fff;border-radius:8px;font-size:0.83rem;padding:8px 20px;">Apply Now</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block active_dashboard %}active{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-2">
+        <div class="stat-card" style="background:#0d2137;">
+            <div class="stat-label">Total</div>
+            <div class="stat-value">{{ total }}</div>
+            <i class="fas fa-folder stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="stat-card" style="background:#1e3a8a;">
+            <div class="stat-label">Submitted</div>
+            <div class="stat-value">{{ submitted }}</div>
+            <i class="fas fa-inbox stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="stat-card" style="background:#92400e;">
+            <div class="stat-label">Assigned</div>
+            <div class="stat-value">{{ assigned }}</div>
+            <i class="fas fa-user-check stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="stat-card" style="background:#166534;">
+            <div class="stat-label">Approved</div>
+            <div class="stat-value">{{ approved }}</div>
+            <i class="fas fa-check-circle stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="stat-card" style="background:#7f1d1d;">
+            <div class="stat-label">Rejected</div>
+            <div class="stat-value">{{ rejected }}</div>
+            <i class="fas fa-times-circle stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="stat-card" style="background:#9f1239;">
+            <div class="stat-label">Overdue</div>
+            <div class="stat-value">{{ overdue }}</div>
+            <i class="fas fa-exclamation-triangle stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header-navy"><span><i class="fas fa-chart-pie me-2"></i>Completion Rate</span></div>
+            <div class="card-body d-flex flex-column align-items-center justify-content-center py-4">
+                <div style="font-size:3.5rem;font-weight:900;color:#0d2137;font-family:'Noto Serif',serif;">{{ completion_pct }}%</div>
+                <p class="text-muted mb-3" style="font-size:0.82rem;">Applications Processed</p>
+                <div class="progress w-100" style="height:10px;">
+                    <div class="progress-bar" role="progressbar"
+                         style="width:{{ completion_pct }}%;background:linear-gradient(90deg,#0d2137,#c9992a);"
+                         aria-valuenow="{{ completion_pct }}" aria-valuemin="0" aria-valuemax="100">
+                    </div>
+                </div>
+                {% if overdue > 0 %}
+                <div class="alert-warning-custom w-100 mt-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    {{ overdue }} application(s) are overdue!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header-navy">
+                <span><i class="fas fa-user-tie me-2"></i>Officer Workload Overview</span>
+                <a href="{% url 'manage_officers' %}" style="color:#c9992a;font-size:0.75rem;text-decoration:none;">Manage →</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-clean mb-0">
+                    <thead>
+                        <tr><th>Officer</th><th>Designation</th><th>Workload</th><th>Rate</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for officer in officers %}
+                        <tr>
+                            <td>
+                                <strong>{{ officer.user.get_full_name|default:officer.user.username }}</strong>
+                                {% if officer.is_flagged %}<span class="badge bg-warning text-dark ms-1" style="font-size:0.62rem;"><i class="fas fa-star"></i> Top</span>{% endif %}
+                            </td>
+                            <td style="font-size:0.78rem;color:#64748b;">{{ officer.designation }}</td>
+                            <td>
+                                <span class="badge" style="background:#fef3c7;color:#92400e;font-size:0.75rem;">{{ officer.workload_count }} active</span>
+                            </td>
+                            <td style="font-size:0.82rem;">{{ officer.get_completion_rate }}%</td>
+                            <td>
+                                {% if officer.is_active %}
+                                <span class="badge bg-success" style="font-size:0.65rem;">Active</span>
+                                {% else %}
+                                <span class="badge bg-danger" style="font-size:0.65rem;">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-3" style="font-size:0.82rem;">No officers created yet. <a href="{% url 'manage_officers' %}">Create one →</a></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header-navy">
+                <span><i class="fas fa-folder-open me-2"></i>Recent Applications</span>
+                <a href="{% url 'all_applications' %}" style="color:#c9992a;font-size:0.75rem;text-decoration:none;">View All →</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-clean mb-0">
+                    <thead><tr><th>ID</th><th>Type</th><th>Citizen</th><th>Status</th></tr></thead>
+                    <tbody>
+                        {% for app in recent_apps %}
+                        <tr {% if app.status == 'OVERDUE' %}class="overdue-row"{% endif %}>
+                            <td><strong>#{{ app.id }}</strong></td>
+                            <td style="font-size:0.78rem;">{{ app.get_certificate_type_display }}</td>
+                            <td style="font-size:0.78rem;">{{ app.citizen.username }}</td>
+                            <td><span class="badge-status badge-{{ app.status }}">{{ app.status }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-3" style="font-size:0.82rem;">No applications yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header-navy">
+                <span><i class="fas fa-clock-rotate-left me-2"></i>Recent Activity</span>
+                <a href="{% url 'audit_log' %}" style="color:#c9992a;font-size:0.75rem;text-decoration:none;">Full Log →</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-clean mb-0">
+                    <thead><tr><th>Time</th><th>Action</th><th>By</th></tr></thead>
+                    <tbody>
+                        {% for log in recent_logs %}
+                        <tr>
+                            <td style="font-size:0.72rem;color:#94a3b8;">{{ log.timestamp|date:"d M H:i" }}</td>
+                            <td><span class="badge bg-secondary" style="font-size:0.65rem;">{{ log.action }}</span></td>
+                            <td style="font-size:0.78rem;">{{ log.performed_by|default:"System" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-center text-muted py-3" style="font-size:0.82rem;">No activity yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

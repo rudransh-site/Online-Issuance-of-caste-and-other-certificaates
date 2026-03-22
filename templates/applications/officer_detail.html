@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}Process Application #{{ application.id }}{% endblock %}
+{% block page_title %}Process Application{% endblock %}
+{% block active_officer %}active{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+
+    <div class="mb-3">
+      <a href="{% url 'officer_list' %}" style="color:#c9992a;text-decoration:none;font-size:0.83rem;">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+      </a>
+    </div>
+
+    <!-- Status / urgency banner -->
+    {% if application.status == 'OVERDUE' %}
+    <div class="alert mb-4" style="background:#fce7f3;border:1px solid #fbcfe8;border-radius:10px;color:#9f1239;font-size:0.85rem;padding:14px 18px;">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      <strong>Overdue!</strong> This application was due on {{ application.due_date|date:"d M Y" }}. Process it immediately.
+    </div>
+    {% elif application.days_remaining is not None and application.days_remaining <= 2 %}
+    <div class="alert mb-4" style="background:#fef9c3;border:1px solid #fde047;border-radius:10px;color:#854d0e;font-size:0.85rem;padding:14px 18px;">
+      <i class="fas fa-clock me-2"></i>
+      <strong>Urgent!</strong> Only {{ application.days_remaining }} day(s) remaining. Due {{ application.due_date|date:"d M Y" }}.
+    </div>
+    {% endif %}
+
+    <!-- Application info -->
+    <div class="card mb-4">
+      <div class="card-header-navy d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-file-alt me-2"></i>Application #{{ application.id }} — {{ application.get_certificate_type_display }}</span>
+        <span style="font-size:0.75rem;opacity:0.7;">{{ application.submitted_date|date:"d M Y" }}</span>
+      </div>
+      <div class="card-body p-4">
+
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:12px;">Personal Information</div>
+        <div class="row g-3 mb-4">
+          <div class="col-md-3"><div style="font-size:0.72rem;color:#94a3b8;">Name</div><div style="font-weight:600;font-size:0.88rem;">{{ application.applicant_name }}</div></div>
+          <div class="col-md-3"><div style="font-size:0.72rem;color:#94a3b8;">DOB</div><div style="font-weight:600;font-size:0.88rem;">{{ application.applicant_dob|date:"d M Y" }}</div></div>
+          <div class="col-md-2"><div style="font-size:0.72rem;color:#94a3b8;">Gender</div><div style="font-weight:600;font-size:0.88rem;">{{ application.applicant_gender }}</div></div>
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Phone</div><div style="font-weight:600;font-size:0.88rem;">{{ application.applicant_phone }}</div></div>
+          <div class="col-12"><div style="font-size:0.72rem;color:#94a3b8;">Address</div><div style="font-weight:600;font-size:0.88rem;">{{ application.applicant_address }}</div></div>
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Aadhaar No.</div><div style="font-weight:600;font-size:0.88rem;">{{ application.aadhar_number }}</div></div>
+          {% if application.aadhar_photo %}
+          <div class="col-md-4">
+            <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:6px;">Aadhaar Photo</div>
+            <a href="{{ application.aadhar_photo.url }}" target="_blank">
+              <img src="{{ application.aadhar_photo.url }}" alt="Aadhaar" style="width:100px;height:65px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;">
+            </a>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if application.certificate_type == 'CASTE' %}
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:12px;padding-top:12px;border-top:1px solid #f1f5f9;">Caste Details</div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Caste</div><div style="font-weight:600;">{{ application.caste_name }}</div></div>
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Category</div><div style="font-weight:600;">{{ application.caste_category }}</div></div>
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Father's Name</div><div style="font-weight:600;">{{ application.father_name }}</div></div>
+          {% if application.purpose %}<div class="col-12"><div style="font-size:0.72rem;color:#94a3b8;">Purpose</div><div style="font-weight:600;">{{ application.purpose }}</div></div>{% endif %}
+        </div>
+        {% elif application.certificate_type == 'INCOME' %}
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:12px;padding-top:12px;border-top:1px solid #f1f5f9;">Income Details</div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Annual Income</div><div style="font-weight:600;">₹{{ application.annual_income }}</div></div>
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Occupation</div><div style="font-weight:600;">{{ application.occupation }}</div></div>
+          {% if application.income_purpose %}<div class="col-4"><div style="font-size:0.72rem;color:#94a3b8;">Purpose</div><div style="font-weight:600;">{{ application.income_purpose }}</div></div>{% endif %}
+        </div>
+        {% elif application.certificate_type == 'BIRTH' %}
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:12px;padding-top:12px;border-top:1px solid #f1f5f9;">Birth Details</div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Place of Birth</div><div style="font-weight:600;">{{ application.birth_place }}</div></div>
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Mother's Name</div><div style="font-weight:600;">{{ application.mother_name }}</div></div>
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Father's Name</div><div style="font-weight:600;">{{ application.birth_father_name }}</div></div>
+          {% if application.hospital_name %}<div class="col-md-6"><div style="font-size:0.72rem;color:#94a3b8;">Hospital</div><div style="font-weight:600;">{{ application.hospital_name }}</div></div>{% endif %}
+        </div>
+        {% elif application.certificate_type == 'DEATH' %}
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:12px;padding-top:12px;border-top:1px solid #f1f5f9;">Death Details</div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Deceased</div><div style="font-weight:600;">{{ application.deceased_name }}</div></div>
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Date of Death</div><div style="font-weight:600;">{{ application.death_date|date:"d M Y" }}</div></div>
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Place</div><div style="font-weight:600;">{{ application.death_place }}</div></div>
+          {% if application.cause_of_death %}<div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Cause</div><div style="font-weight:600;">{{ application.cause_of_death }}</div></div>{% endif %}
+          <div class="col-md-4"><div style="font-size:0.72rem;color:#94a3b8;">Informant</div><div style="font-weight:600;">{{ application.informant_name }} ({{ application.relation_to_deceased }})</div></div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <!-- Decision form -->
+    {% if application.status != 'APPROVED' and application.status != 'REJECTED' %}
+    <div class="card">
+      <div class="card-header-navy"><span><i class="fas fa-gavel me-2"></i>Make Decision</span></div>
+      <div class="card-body p-4">
+        <form method="POST">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:0.82rem;">Remarks <span style="color:#64748b;font-weight:400;">(mandatory for rejection)</span></label>
+            <textarea name="remarks" class="form-control" rows="4" placeholder="Enter remarks..."></textarea>
+            {% if form.remarks.errors %}<div class="text-danger" style="font-size:0.78rem;">{{ form.remarks.errors.0 }}</div>{% endif %}
+          </div>
+
+          {% if messages %}
+            {% for msg in messages %}
+              <div class="alert alert-{{ msg.tags }} mb-3" style="font-size:0.82rem;border-radius:8px;">{{ msg }}</div>
+            {% endfor %}
+          {% endif %}
+
+          <div class="d-flex gap-3">
+            <button type="submit" name="action" value="APPROVE"
+              class="btn" style="background:#166534;color:#fff;padding:10px 28px;border-radius:8px;font-weight:700;font-size:0.88rem;">
+              <i class="fas fa-check me-2"></i>Approve Application
+            </button>
+            <button type="submit" name="action" value="REJECT"
+              class="btn" style="background:#991b1b;color:#fff;padding:10px 28px;border-radius:8px;font-weight:700;font-size:0.88rem;">
+              <i class="fas fa-times me-2"></i>Reject Application
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="card">
+      <div class="card-body p-4 text-center">
+        <i class="fas fa-lock" style="font-size:1.8rem;color:#cbd5e1;"></i>
+        <p class="text-muted mt-2 mb-0" style="font-size:0.85rem;">This application has already been <strong>{{ application.get_status_display }}</strong> and cannot be modified.</p>
+        {% if application.remarks %}<p class="mt-2" style="font-size:0.82rem;color:#374151;">Remarks: {{ application.remarks }}</p>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

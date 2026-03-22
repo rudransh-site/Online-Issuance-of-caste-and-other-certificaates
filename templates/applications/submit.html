@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% block title %}Apply — {{ cert_label }}{% endblock %}
+{% block page_title %}{{ cert_label }} Application{% endblock %}
+{% block active_submit %}active{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+
+    <div class="mb-3">
+      <a href="{% url 'choose_certificate' %}" style="color:#c9992a;text-decoration:none;font-size:0.83rem;">
+        <i class="fas fa-arrow-left me-1"></i> Choose a different certificate
+      </a>
+    </div>
+
+    <div class="card">
+      <div class="card-header-navy">
+        <span><i class="fas fa-file-circle-plus me-2"></i>{{ cert_label }} — Application Form</span>
+      </div>
+      <div class="card-body p-4">
+
+        {% if messages %}
+          {% for msg in messages %}
+          <div class="alert alert-{{ msg.tags }} mb-3" style="border-radius:8px;font-size:0.83rem;">{{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" id="appForm">
+          {% csrf_token %}
+
+          <!-- Section: Personal Information -->
+          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+            <i class="fas fa-user me-1"></i> Personal Information
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Full Name *</label>
+              <input type="text" name="applicant_name" class="form-control" value="{{ form.applicant_name.value|default:'' }}" required placeholder="As per Aadhaar card">
+              {% if form.applicant_name.errors %}<div class="text-danger" style="font-size:0.78rem;">{{ form.applicant_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Date of Birth *</label>
+              <input type="date" name="applicant_dob" class="form-control" value="{{ form.applicant_dob.value|default:'' }}" required>
+              {% if form.applicant_dob.errors %}<div class="text-danger" style="font-size:0.78rem;">{{ form.applicant_dob.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Gender *</label>
+              <select name="applicant_gender" class="form-select" required>
+                <option value="">— Select —</option>
+                <option value="Male" {% if form.applicant_gender.value == 'Male' %}selected{% endif %}>Male</option>
+                <option value="Female" {% if form.applicant_gender.value == 'Female' %}selected{% endif %}>Female</option>
+                <option value="Other" {% if form.applicant_gender.value == 'Other' %}selected{% endif %}>Other</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Phone Number *</label>
+              <input type="tel" name="applicant_phone" class="form-control" value="{{ form.applicant_phone.value|default:'' }}" required placeholder="10-digit mobile number">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Complete Address *</label>
+              <textarea name="applicant_address" class="form-control" rows="2" required placeholder="House No., Street, City, District, State, PIN">{{ form.applicant_address.value|default:'' }}</textarea>
+            </div>
+          </div>
+
+          <!-- Section: Aadhaar -->
+          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+            <i class="fas fa-id-card me-1"></i> Aadhaar Verification
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Aadhaar Number * <span style="color:#64748b;font-weight:400;">(12 digits)</span></label>
+              <input type="text" name="aadhar_number" class="form-control" value="{{ form.aadhar_number.value|default:'' }}" required placeholder="XXXX XXXX XXXX" maxlength="12" minlength="12" pattern="[0-9]{12}">
+              {% if form.aadhar_number.errors %}<div class="text-danger" style="font-size:0.78rem;">{{ form.aadhar_number.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <div style="font-size:0.72rem;color:#94a3b8;margin-top:32px;padding:12px 14px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+                <i class="fas fa-shield-alt me-1" style="color:#c9992a;"></i>
+                Your Aadhaar number is used for identity verification only. No photo upload required.
+              </div>
+            </div>
+          </div>
+
+          <!-- Certificate-specific fields -->
+          {% if cert_type == 'CASTE' %}
+          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+            <i class="fas fa-users me-1"></i> Caste Details
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Caste Name *</label>
+              <input type="text" name="caste_name" class="form-control" value="{{ form.caste_name.value|default:'' }}" required placeholder="e.g. Chamar, Yadav, Brahmin">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Category *</label>
+              <select name="caste_category" class="form-select" required>
+                <option value="">— Select Category —</option>
+                <option value="SC" {% if form.caste_category.value == 'SC' %}selected{% endif %}>SC (Scheduled Caste)</option>
+                <option value="ST" {% if form.caste_category.value == 'ST' %}selected{% endif %}>ST (Scheduled Tribe)</option>
+                <option value="OBC" {% if form.caste_category.value == 'OBC' %}selected{% endif %}>OBC (Other Backward Class)</option>
+                <option value="General" {% if form.caste_category.value == 'General' %}selected{% endif %}>General</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Father's Name *</label>
+              <input type="text" name="father_name" class="form-control" value="{{ form.father_name.value|default:'' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Purpose of Certificate</label>
+              <textarea name="purpose" class="form-control" rows="2" placeholder="e.g. School admission, Government job application">{{ form.purpose.value|default:'' }}</textarea>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if cert_type == 'INCOME' %}
+          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+            <i class="fas fa-rupee-sign me-1"></i> Income Details
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Annual Income (₹) *</label>
+              <input type="number" name="annual_income" class="form-control" value="{{ form.annual_income.value|default:'' }}" required placeholder="e.g. 150000" min="0">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Occupation *</label>
+              <input type="text" name="occupation" class="form-control" value="{{ form.occupation.value|default:'' }}" required placeholder="e.g. Farmer, Labour, Self-employed">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Purpose of Certificate</label>
+              <textarea name="income_purpose" class="form-control" rows="2" placeholder="e.g. Scholarship application">{{ form.income_purpose.value|default:'' }}</textarea>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if cert_type == 'BIRTH' %}
+          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+            <i class="fas fa-baby me-1"></i> Birth Details
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Place of Birth *</label>
+              <input type="text" name="birth_place" class="form-control" value="{{ form.birth_place.value|default:'' }}" required placeholder="City, District, State">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Hospital/Nursing Home Name</label>
+              <input type="text" name="hospital_name" class="form-control" value="{{ form.hospital_name.value|default:'' }}" placeholder="If born at hospital">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Mother's Name *</label>
+              <input type="text" name="mother_name" class="form-control" value="{{ form.mother_name.value|default:'' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Father's Name *</label>
+              <input type="text" name="birth_father_name" class="form-control" value="{{ form.birth_father_name.value|default:'' }}" required>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if cert_type == 'DEATH' %}
+          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+            <i class="fas fa-dove me-1"></i> Death Details
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Name of Deceased *</label>
+              <input type="text" name="deceased_name" class="form-control" value="{{ form.deceased_name.value|default:'' }}" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Date of Death *</label>
+              <input type="date" name="death_date" class="form-control" value="{{ form.death_date.value|default:'' }}" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Place of Death *</label>
+              <input type="text" name="death_place" class="form-control" value="{{ form.death_place.value|default:'' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Cause of Death</label>
+              <input type="text" name="cause_of_death" class="form-control" value="{{ form.cause_of_death.value|default:'' }}" placeholder="e.g. Cardiac arrest">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Informant Name *</label>
+              <input type="text" name="informant_name" class="form-control" value="{{ form.informant_name.value|default:'' }}" required placeholder="Person filing this form">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Relation to Deceased *</label>
+              <input type="text" name="relation_to_deceased" class="form-control" value="{{ form.relation_to_deceased.value|default:'' }}" required placeholder="e.g. Son, Daughter">
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Supporting Document Upload -->
+          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+            <i class="fas fa-paperclip me-1"></i> Supporting Documents
+          </div>
+
+          {% if cert_type == 'CASTE' %}
+          <div style="background:#fef9c3;border-left:3px solid #c9992a;border-radius:6px;padding:10px 14px;font-size:0.82rem;color:#374151;margin-bottom:14px;">
+            <i class="fas fa-info-circle me-2" style="color:#c9992a;"></i>
+            <strong>What to upload:</strong> A caste certificate from your Gram Panchayat, Ward Officer, or previously issued school/employer certificate as proof.
+          </div>
+          {% elif cert_type == 'INCOME' %}
+          <div style="background:#fef9c3;border-left:3px solid #c9992a;border-radius:6px;padding:10px 14px;font-size:0.82rem;color:#374151;margin-bottom:14px;">
+            <i class="fas fa-info-circle me-2" style="color:#c9992a;"></i>
+            <strong>What to upload:</strong> Your previous year Income Tax Return (ITR) filing, salary slip, or Form 16 as income proof.
+          </div>
+          {% elif cert_type == 'BIRTH' %}
+          <div style="background:#fef9c3;border-left:3px solid #c9992a;border-radius:6px;padding:10px 14px;font-size:0.82rem;color:#374151;margin-bottom:14px;">
+            <i class="fas fa-info-circle me-2" style="color:#c9992a;"></i>
+            <strong>What to upload:</strong> The birth record certificate issued by the hospital or nursing home where the birth took place.
+          </div>
+          {% elif cert_type == 'DEATH' %}
+          <div style="background:#fef9c3;border-left:3px solid #c9992a;border-radius:6px;padding:10px 14px;font-size:0.82rem;color:#374151;margin-bottom:14px;">
+            <i class="fas fa-info-circle me-2" style="color:#c9992a;"></i>
+            <strong>What to upload:</strong> The death certificate issued by the hospital or morgue confirming the death.
+          </div>
+          {% endif %}
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              {% if cert_type == 'CASTE' %}
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Caste Proof Document * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
+              <input type="file" name="support_doc_1" class="form-control" accept="image/*,.pdf" required>
+              <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">Gram Panchayat / Ward Officer / School certificate</div>
+              {% elif cert_type == 'INCOME' %}
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Income Proof Document * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
+              <input type="file" name="support_doc_1" class="form-control" accept="image/*,.pdf" required>
+              <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">ITR filing / Salary slip / Form 16</div>
+              {% elif cert_type == 'BIRTH' %}
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Hospital Birth Record * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
+              <input type="file" name="support_doc_1" class="form-control" accept="image/*,.pdf" required>
+              <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">Certificate issued by hospital / nursing home</div>
+              {% elif cert_type == 'DEATH' %}
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Death Certificate from Morgue/Hospital * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
+              <input type="file" name="support_doc_1" class="form-control" accept="image/*,.pdf" required>
+              <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">Certificate issued by hospital / morgue / municipal authority</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold" style="font-size:0.82rem;">Additional Document <span style="color:#64748b;font-weight:400;">(Optional)</span></label>
+              <input type="file" name="support_doc_2" class="form-control" accept="image/*,.pdf">
+              <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">Any additional supporting proof</div>
+            </div>
+          </div>
+
+          <!-- Declaration -->
+          <div class="p-3 mb-4" style="background:#fef9c3;border-radius:10px;border-left:3px solid #c9992a;border:1px solid #fde68a;">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="declaration" name="declaration" required
+                oninvalid="this.setCustomValidity('You must accept the declaration before submitting.')"
+                oninput="this.setCustomValidity('')">
+              <label class="form-check-label" for="declaration" style="font-size:0.82rem;color:#374151;font-weight:500;">
+                <strong style="color:#92400e;">* Required:</strong> I hereby declare that all information provided above is true and correct to the best of my knowledge. I understand that providing false information is a punishable offence under the Indian Penal Code.
+              </label>
+            </div>
+          </div>
+
+          <div id="validation-error" style="display:none;background:#fee2e2;border-left:4px solid #ef4444;border-radius:8px;padding:10px 14px;font-size:0.83rem;color:#7f1d1d;margin-bottom:12px;">
+            <i class="fas fa-exclamation-circle me-2"></i><span id="error-msg"></span>
+          </div>
+
+          <div class="d-flex gap-3">
+            <button type="button" onclick="validateAndSubmit()" class="btn" style="background:#0d2137;color:#fff;padding:10px 28px;border-radius:8px;font-weight:700;font-size:0.88rem;">
+              <i class="fas fa-paper-plane me-2"></i>Submit Application
+            </button>
+            <a href="{% url 'choose_certificate' %}" class="btn" style="background:#f1f5f9;color:#374151;padding:10px 24px;border-radius:8px;font-size:0.88rem;">
+              Cancel
+            </a>
+          </div>
+
+          <script>
+          function validateAndSubmit() {
+            var errors = [];
+
+            // Check all required text/select fields
+            var required = document.querySelectorAll('input[required]:not([type=file]):not([type=checkbox]), select[required], textarea[required]');
+            for (var i = 0; i < required.length; i++) {
+              if (!required[i].value.trim()) {
+                required[i].style.borderColor = '#ef4444';
+                errors.push('Please fill in all required fields marked with *');
+                break;
+              } else {
+                required[i].style.borderColor = '';
+              }
+            }
+
+            // Check Aadhaar number is exactly 12 digits
+            var aadhar = document.querySelector('input[name=aadhar_number]');
+            if (aadhar && (!/^\d{12}$/.test(aadhar.value.trim()))) {
+              aadhar.style.borderColor = '#ef4444';
+              errors.push('Aadhaar number must be exactly 12 digits.');
+            }
+
+            // Check mandatory file upload (support_doc_1)
+            var doc1 = document.querySelector('input[name=support_doc_1]');
+            if (doc1 && doc1.files.length === 0) {
+              doc1.style.outline = '2px solid #ef4444';
+              errors.push('Please upload the required supporting document.');
+            } else if (doc1) {
+              doc1.style.outline = '';
+            }
+
+            // Check declaration checkbox
+            var decl = document.getElementById('declaration');
+            if (decl && !decl.checked) {
+              errors.push('You must tick the declaration checkbox before submitting.');
+            }
+
+            if (errors.length > 0) {
+              var box = document.getElementById('validation-error');
+              document.getElementById('error-msg').textContent = errors[0];
+              box.style.display = 'block';
+              box.scrollIntoView({behavior: 'smooth', block: 'center'});
+              return;
+            }
+
+            document.getElementById('appForm').submit();
+          }
+          </script>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

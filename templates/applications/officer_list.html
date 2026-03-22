@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block title %}Officer Dashboard{% endblock %}
+{% block page_title %}Officer Dashboard{% endblock %}
+{% block active_officer %}active{% endblock %}
+
+{% block content %}
+
+{% if show_warning %}
+<div class="alert-warning-custom mb-4">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>Warning:</strong> You have {{ overdue.count }} overdue application(s). Please process them immediately.
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:#0d2137;">
+            <div class="stat-label">Current Workload</div>
+            <div class="stat-value">{{ profile.workload_count }}</div>
+            <i class="fas fa-tasks stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:#92400e;">
+            <div class="stat-label">Pending</div>
+            <div class="stat-value">{{ pending.count }}</div>
+            <i class="fas fa-clock stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:#9f1239;">
+            <div class="stat-label">Overdue</div>
+            <div class="stat-value">{{ overdue.count }}</div>
+            <i class="fas fa-exclamation-triangle stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card" style="background:#166534;">
+            <div class="stat-label">Completion Rate</div>
+            <div class="stat-value">{{ completion_rate }}%</div>
+            <i class="fas fa-chart-pie stat-icon"></i>
+        </div>
+    </div>
+</div>
+
+{% if overdue %}
+<div class="card mb-4" style="border:1px solid #fecdd3;">
+    <div class="card-header-navy" style="background:#991b1b;">
+        <span><i class="fas fa-exclamation-triangle me-2"></i>Overdue Applications — Process Immediately</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-clean mb-0">
+                <thead>
+                    <tr><th>ID</th><th>Type</th><th>Applicant</th><th>Due Date</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    {% for app in overdue %}
+                    <tr class="overdue-row">
+                        <td><strong>#{{ app.id }}</strong></td>
+                        <td>{{ app.get_certificate_type_display }}</td>
+                        <td>{{ app.applicant_name }}</td>
+                        <td style="color:#dc2626;font-weight:600;">{{ app.due_date|date:"d M Y" }} <i class="fas fa-clock ms-1"></i></td>
+                        <td>
+                            <a href="{% url 'officer_detail' app.id %}" class="btn btn-sm" style="background:#dc2626;color:#fff;border-radius:6px;font-size:0.72rem;">
+                                <i class="fas fa-gavel me-1"></i>Process Now
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card mb-4">
+    <div class="card-header-navy" style="background:#92400e;">
+        <span><i class="fas fa-clock me-2"></i>Pending Applications</span>
+        <span style="font-size:0.72rem;opacity:0.8;">{{ pending.count }} pending</span>
+    </div>
+    <div class="card-body p-0">
+        {% if pending %}
+        <div class="table-responsive">
+            <table class="table table-clean mb-0">
+                <thead>
+                    <tr><th>ID</th><th>Type</th><th>Applicant</th><th>Assigned</th><th>Due Date</th><th>Days Left</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    {% for app in pending %}
+                    <tr>
+                        <td><strong>#{{ app.id }}</strong></td>
+                        <td>{{ app.get_certificate_type_display }}</td>
+                        <td>{{ app.applicant_name }}</td>
+                        <td>{{ app.assigned_date|date:"d M Y" }}</td>
+                        <td>{{ app.due_date|date:"d M Y" }}</td>
+                        <td>
+                            {% with days=app.days_remaining %}
+                            {% if days is not None %}
+                                {% if days <= 2 %}
+                                    <span style="color:#dc2626;font-weight:700;">{{ days }}d <i class="fas fa-fire"></i></span>
+                                {% elif days <= 4 %}
+                                    <span style="color:#d97706;font-weight:600;">{{ days }}d</span>
+                                {% else %}
+                                    <span style="color:#166534;">{{ days }}d</span>
+                                {% endif %}
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            <a href="{% url 'officer_detail' app.id %}" class="btn btn-sm btn-navy" style="border-radius:6px;font-size:0.72rem;padding:4px 10px;">
+                                <i class="fas fa-gavel me-1"></i>Review
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4" style="color:#94a3b8;font-size:0.85rem;">
+            <i class="fas fa-check-circle" style="font-size:2rem;margin-bottom:8px;display:block;color:#22c55e;"></i>No pending applications!
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header-navy" style="background:#166534;">
+        <span><i class="fas fa-check-double me-2"></i>Processed Applications</span>
+        <span style="font-size:0.72rem;opacity:0.8;">{{ approved.count }} approved · {{ rejected.count }} rejected</span>
+    </div>
+    <div class="card-body p-0">
+        {% if approved or rejected %}
+        <div class="table-responsive">
+            <table class="table table-clean mb-0">
+                <thead>
+                    <tr><th>ID</th><th>Type</th><th>Applicant</th><th>Processed</th><th>Status</th><th>Remarks</th></tr>
+                </thead>
+                <tbody>
+                    {% for app in approved %}
+                    <tr>
+                        <td><strong>#{{ app.id }}</strong></td>
+                        <td>{{ app.get_certificate_type_display }}</td>
+                        <td>{{ app.applicant_name }}</td>
+                        <td>{{ app.processed_date|date:"d M Y" }}</td>
+                        <td><span class="badge-status badge-APPROVED">APPROVED</span></td>
+                        <td style="font-size:0.78rem;color:#64748b;">{{ app.remarks|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% for app in rejected %}
+                    <tr>
+                        <td><strong>#{{ app.id }}</strong></td>
+                        <td>{{ app.get_certificate_type_display }}</td>
+                        <td>{{ app.applicant_name }}</td>
+                        <td>{{ app.processed_date|date:"d M Y" }}</td>
+                        <td><span class="badge-status badge-REJECTED">REJECTED</span></td>
+                        <td style="font-size:0.78rem;color:#64748b;">{{ app.remarks|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4" style="color:#94a3b8;font-size:0.85rem;">No processed applications yet.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

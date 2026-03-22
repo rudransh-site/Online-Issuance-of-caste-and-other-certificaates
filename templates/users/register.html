@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block auth_content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — Certificate Monitoring System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --navy: #0d2137; --gold: #c9992a; }
+        body { font-family: 'DM Sans', sans-serif; margin: 0; background: linear-gradient(135deg, #f0f4f8, #e8edf5); min-height: 100vh; }
+        .gov-topbar { background: #f5f5f5; border-bottom: 1px solid #ddd; padding: 5px 0; font-size: 0.72rem; color: #555; }
+        .main-header { background: var(--navy); padding: 14px 0; border-bottom: 4px solid var(--gold); }
+        .header-emblem { width: 48px; height: 48px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+        .header-text h1 { font-family: 'Noto Serif', serif; color: #fff; font-size: 1.15rem; margin: 0; }
+        .header-text p { color: rgba(255,255,255,0.55); margin: 0; font-size: 0.75rem; }
+        .reg-wrapper { padding: 40px 20px; }
+        .reg-card { background: #fff; border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,0.1); overflow: hidden; max-width: 580px; margin: 0 auto; }
+        .reg-card-header { background: var(--navy); padding: 24px 28px; }
+        .reg-card-header h4 { font-family: 'Noto Serif', serif; color: #fff; margin: 0; font-size: 1.15rem; }
+        .reg-card-header p { color: rgba(255,255,255,0.6); margin: 4px 0 0; font-size: 0.78rem; }
+        .reg-card-body { padding: 28px; }
+        .form-label { font-weight: 600; font-size: 0.8rem; color: #374151; margin-bottom: 4px; }
+        .form-control { border-radius: 8px; border: 1.5px solid #e2e8f0; padding: 9px 12px; font-size: 0.85rem; }
+        .form-control:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13,33,55,0.08); }
+        .btn-register { background: var(--navy); color: #fff; border: none; border-radius: 8px; padding: 12px; font-weight: 700; font-size: 0.9rem; width: 100%; }
+        .btn-register:hover { background: #1a3a5e; color: #fff; }
+        .section-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; margin-top: 20px; padding-bottom: 6px; border-bottom: 1px solid #f1f5f9; }
+        .alert { border: none; border-radius: 8px; font-size: 0.82rem; }
+    </style>
+</head>
+<body>
+<div class="gov-topbar"><div class="container text-center">भारत सरकार | Government of India — Revenue Department Certificate Portal</div></div>
+<div class="main-header">
+    <div class="container d-flex align-items-center gap-3">
+        <div class="header-emblem">🏛</div>
+        <div class="header-text">
+            <h1>Certificate Monitoring System</h1>
+            <p>Citizen Registration Portal</p>
+        </div>
+    </div>
+</div>
+
+<div class="reg-wrapper">
+    <div class="reg-card">
+        <div class="reg-card-header">
+            <h4><i class="fas fa-user-plus me-2" style="color:var(--gold)"></i>Citizen Registration</h4>
+            <p>Create your account to apply for government certificates online</p>
+        </div>
+        <div class="reg-card-body">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} mb-3">{{ message }}</div>
+            {% endfor %}
+
+            <form method="POST" action="{% url 'register' %}">
+                {% csrf_token %}
+
+                <div class="section-label"><i class="fas fa-user me-1"></i> Personal Information</div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label">First Name *</label>
+                        <input type="text" name="first_name" class="form-control" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Last Name *</label>
+                        <input type="text" name="last_name" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Email Address *</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text" name="phone" class="form-control" placeholder="10-digit number">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Username *</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Address</label>
+                        <textarea name="address" class="form-control" rows="2" placeholder="Your full address"></textarea>
+                    </div>
+                </div>
+
+                <div class="section-label mt-3"><i class="fas fa-lock me-1"></i> Login Credentials</div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label">Password *</label>
+                        <input type="password" name="password1" class="form-control" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Confirm Password *</label>
+                        <input type="password" name="password2" class="form-control" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-register mt-4">
+                    <i class="fas fa-user-check me-2"></i>Create Account
+                </button>
+            </form>
+
+            <div class="text-center mt-3">
+                <span style="font-size:0.82rem; color:#64748b;">Already have an account?</span>
+                <a href="{% url 'login' %}" style="color:var(--navy); font-weight:600; font-size:0.82rem; text-decoration:none;"> Login here</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+{% endblock %}
