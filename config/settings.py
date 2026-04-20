@@ -1,11 +1,12 @@
 import os
 from pathlib import Path
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-cms-college-project-key-2026-change-in-prod'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -90,3 +91,4 @@ MESSAGE_TAGS = {
     messages_constants.WARNING: 'warning',
     messages_constants.ERROR: 'danger',
 }
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
