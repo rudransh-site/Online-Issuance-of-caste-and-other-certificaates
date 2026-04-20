@@ -1,33 +1,276 @@
 from django.test import TestCase
 from django.utils import timezone
 from datetime import timedelta
-
+from users.models import User, OfficerProfile
 from applications.models import CertificateApplication
-from users.models import User
+from automation.models import AuditLog, SystemConfiguration
+from automation.services import AssignmentService, ProcessingService, OverdueService, AuditService
 
-class AutomationTest(TestCase):
 
-    def test_due_date_calculation(self):
-        assigned_date = timezone.now()
-        due_date = assigned_date + timedelta(days=7)
+def make_user(username, role):
+    return User.objects.create_user(
+        username=username, password='pass1234', role=role,
+        first_name='Test', last_name='User'
+    )
 
-        self.assertEqual((due_date - assigned_date).days, 7)
+def make_officer_profile(username='officer1', workload=0, active=True):
+    user = make_user(username, User.OFFICER)
+    profile = OfficerProfile.objects.create(
+        user=user, designation='Revenue Officer',
+        workload_count=workload, is_active=active
+    )
+    return user, profile
 
-    def test_assignment_logic_basic(self):
-        officer = User.objects.create_user(
-            username="officer1",
-            password="test123",
-            role="OFFICER"
+def make_application(citizen, cert_type='CASTE', status='SUBMITTED'):
+    return CertificateApplication.objects.create(
+        citizen=citizen, certificate_type=cert_type,
+        applicant_name='Test', applicant_dob='2000-01-01',
+        applicant_gender='Male', applicant_phone='9999999999',
+        applicant_address='Test Address', aadhar_number='123456789012',
+        status=status,
+    )
+
+
+class AuditLogModelTest(TestCase):
+
+    def setUp(self):
+        self.admin = make_user('admin1', User.ADMIN)
+        self.citizen = make_user('citizen1', User.CITIZEN)
+        self.app = make_application(self.citizen)
+
+    def test_audit_log_created_successfully(self):
+        log = AuditLog.objects.create(
+            performed_by=self.admin,
+            application=self.app,
+            action='SUBMITTED',
+            description='Test submission'
         )
+        self.assertEqual(log.action, 'SUBMITTED')
+        self.assertEqual(log.performed_by, self.admin)
 
-        app = CertificateApplication.objects.create(
-            application_type="CASTE",
-            status="SUBMITTED"
+    def test_audit_log_ordering_is_latest_first(self):
+        log1 = AuditLog.objects.create(action='LOGIN', description='First')
+        log2 = AuditLog.objects.create(action='LOGOUT', description='Second')
+        logs = AuditLog.objects.all()
+        self.assertEqual(logs[0].id, log2.id)
+
+    def test_audit_log_str_representation(self):
+        log = AuditLog.objects.create(
+            performed_by=self.admin, action='LOGIN', description='admin login'
         )
+        self.assertIn('LOGIN', str(log))
 
-        app.assigned_officer = officer
-        app.status = "ASSIGNED"
+    def test_audit_log_application_can_be_null(self):
+        log = AuditLog.objects.create(
+            performed_by=self.admin,
+            action='LOGIN',
+            description='No application'
+        )
+        self.assertIsNone(log.application)
+
+    def test_audit_log_performed_by_can_be_null(self):
+        log = AuditLog.objects.create(
+            action='OVERDUE',
+            description='System marked overdue'
+        )
+        self.assertIsNone(log.performed_by)
+
+
+class SystemConfigurationTest(TestCase):
+
+    def test_create_config(self):
+        config = SystemConfiguration.objects.create(
+            key='MAX_WORKLOAD', value='10', description='Max officer workload'
+        )
+        self.assertEqual(config.key, 'MAX_WORKLOAD')
+        self.assertEqual(config.value, '10')
+
+    def test_get_existing_key(self):
+        SystemConfiguration.objects.create(key='DEADLINE_DAYS', value='7')
+        result = SystemConfiguration.get('DEADLINE_DAYS')
+        self.assertEqual(result, '7')
+
+    def test_get_missing_key_returns_default(self):
+        result = SystemConfiguration.get('NONEXISTENT_KEY', default='fallback')
+        self.assertEqual(result, 'fallback')
+
+    def test_get_missing_key_returns_none_by_default(self):
+        result = SystemConfiguration.get('NONEXISTENT_KEY')
+        self.assertIsNone(result)
+
+    def test_str_representation(self):
+        config = SystemConfiguration.objects.create(key='TEST_KEY', value='test_val')
+        self.assertIn('TEST_KEY', str(config))
+        self.assertIn('test_val', str(config))
+
+
+class AuditServiceTest(TestCase):
+
+    def setUp(self):
+        self.admin = make_user('admin1', User.ADMIN)
+        self.citizen = make_user('citizen1', User.CITIZEN)
+        self.app = make_application(self.citizen)
+
+    def test_log_creates_audit_entry(self):
+        count_before = AuditLog.objects.count()
+        AuditService.log(
+            action='LOGIN',
+            description='admin logged in',
+            performed_by=self.admin
+        )
+        self.assertEqual(AuditLog.objects.count(), count_before + 1)
+
+    def test_log_saves_correct_action(self):
+        AuditService.log(action='SUBMITTED', performed_by=self.citizen, application=self.app)
+        log = AuditLog.objects.filter(action='SUBMITTED').first()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.performed_by, self.citizen)
+        self.assertEqual(log.application, self.app)
+
+    def test_log_works_without_user(self):
+        AuditService.log(action='OVERDUE', description='System action')
+        log = AuditLog.objects.filter(action='OVERDUE').first()
+        self.assertIsNotNone(log)
+        self.assertIsNone(log.performed_by)
+
+    def test_log_works_without_application(self):
+        AuditService.log(action='LOGIN', performed_by=self.admin)
+        log = AuditLog.objects.filter(action='LOGIN').first()
+        self.assertIsNotNone(log)
+        self.assertIsNone(log.application)
+
+
+class AssignmentServiceFullTest(TestCase):
+
+    def setUp(self):
+        self.citizen = make_user('citizen1', User.CITIZEN)
+
+    def test_assign_to_lowest_workload_among_multiple(self):
+        officer_user1, profile1 = make_officer_profile('o1', workload=3)
+        officer_user2, profile2 = make_officer_profile('o2', workload=1)
+        officer_user3, profile3 = make_officer_profile('o3', workload=5)
+        app = make_application(self.citizen)
+        AssignmentService.assign_application(app)
+        app.refresh_from_db()
+        self.assertEqual(app.assigned_officer, profile2)
+
+    def test_assign_skips_inactive_officer(self):
+        officer_user1, profile1 = make_officer_profile('o1', workload=0, active=False)
+        officer_user2, profile2 = make_officer_profile('o2', workload=5, active=True)
+        app = make_application(self.citizen)
+        success, msg = AssignmentService.assign_application(app)
+        self.assertTrue(success)
+        app.refresh_from_db()
+        self.assertEqual(app.assigned_officer, profile2)
+
+    def test_assign_sets_status_assigned(self):
+        make_officer_profile('o1')
+        app = make_application(self.citizen)
+        AssignmentService.assign_application(app)
+        app.refresh_from_db()
+        self.assertEqual(app.status, CertificateApplication.ASSIGNED)
+
+    def test_assign_sets_assigned_date(self):
+        make_officer_profile('o1')
+        app = make_application(self.citizen)
+        AssignmentService.assign_application(app)
+        app.refresh_from_db()
+        self.assertIsNotNone(app.assigned_date)
+
+    def test_workload_balanced_across_multiple_assignments(self):
+        officer_user1, profile1 = make_officer_profile('o1', workload=0)
+        officer_user2, profile2 = make_officer_profile('o2', workload=0)
+        for i in range(4):
+            app = make_application(self.citizen, 'INCOME')
+            AssignmentService.assign_application(app)
+        profile1.refresh_from_db()
+        profile2.refresh_from_db()
+        self.assertEqual(profile1.workload_count + profile2.workload_count, 4)
+        self.assertAlmostEqual(profile1.workload_count, profile2.workload_count, delta=1)
+
+
+class ProcessingServiceFullTest(TestCase):
+
+    def setUp(self):
+        self.citizen = make_user('citizen1', User.CITIZEN)
+        self.officer_user, self.profile = make_officer_profile('o1', workload=0)
+        self.app = make_application(self.citizen)
+        AssignmentService.assign_application(self.app)
+        self.app.refresh_from_db()
+
+    def test_approve_creates_approved_audit_log(self):
+        ProcessingService.approve_application(self.app, self.officer_user, 'OK')
+        log = AuditLog.objects.filter(action='APPROVED').first()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.performed_by, self.officer_user)
+
+    def test_reject_creates_rejected_audit_log(self):
+        ProcessingService.reject_application(self.app, self.officer_user, 'Bad docs')
+        log = AuditLog.objects.filter(action='REJECTED').first()
+        self.assertIsNotNone(log)
+
+    def test_workload_never_goes_below_zero(self):
+        self.profile.workload_count = 0
+        self.profile.save()
+        ProcessingService.approve_application(self.app, self.officer_user, '')
+        self.profile.refresh_from_db()
+        self.assertGreaterEqual(self.profile.workload_count, 0)
+
+    def test_multiple_approvals_reduce_workload_correctly(self):
+        officer_user, profile = make_officer_profile('o2', workload=0)
+        apps = []
+        for i in range(3):
+            a = make_application(self.citizen, 'INCOME')
+            AssignmentService.assign_application(a)
+            a.refresh_from_db()
+            apps.append(a)
+        profile.refresh_from_db()
+        initial = profile.workload_count
+        for a in apps:
+            if a.assigned_officer == profile:
+                ProcessingService.approve_application(a, officer_user, 'OK')
+        profile.refresh_from_db()
+        self.assertLessEqual(profile.workload_count, initial)
+
+
+class OverdueServiceFullTest(TestCase):
+
+    def setUp(self):
+        self.citizen = make_user('citizen1', User.CITIZEN)
+        self.officer_user, self.profile = make_officer_profile('o1')
+
+    def test_multiple_overdue_apps_all_marked(self):
+        apps = []
+        for i in range(3):
+            app = make_application(self.citizen, 'CASTE')
+            AssignmentService.assign_application(app)
+            app.refresh_from_db()
+            app.due_date = timezone.now() - timedelta(hours=1)
+            app.save()
+            apps.append(app)
+        count = OverdueService.check_and_mark_overdue()
+        self.assertEqual(count, 3)
+        for app in apps:
+            app.refresh_from_db()
+            self.assertEqual(app.status, CertificateApplication.OVERDUE)
+
+    def test_already_overdue_apps_not_counted_again(self):
+        app = make_application(self.citizen)
+        app.status = CertificateApplication.OVERDUE
+        app.due_date = timezone.now() - timedelta(days=5)
         app.save()
+        count = OverdueService.check_and_mark_overdue()
+        self.assertEqual(count, 0)
 
-        self.assertEqual(app.assigned_officer, officer)
-        self.assertEqual(app.status, "ASSIGNED")
+    def test_approved_apps_not_affected_by_overdue_check(self):
+        app = make_application(self.citizen)
+        AssignmentService.assign_application(app)
+        app.refresh_from_db()
+        ProcessingService.approve_application(app, self.officer_user, 'OK')
+        app.refresh_from_db()
+        app.due_date = timezone.now() - timedelta(days=5)
+        app.save()
+        count = OverdueService.check_and_mark_overdue()
+        self.assertEqual(count, 0)
+        app.refresh_from_db()
+        self.assertEqual(app.status, CertificateApplication.APPROVED)

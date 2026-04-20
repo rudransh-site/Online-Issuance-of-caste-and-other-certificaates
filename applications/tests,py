@@ -1,22 +1,299 @@
-from django.test import TestCase
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.utils import timezone
+from datetime import timedelta
+from users.models import User, OfficerProfile
 from applications.models import CertificateApplication
+from automation.services import AssignmentService, ProcessingService, OverdueService
 
-class ApplicationTest(TestCase):
 
-    def test_application_creation(self):
-        app = CertificateApplication.objects.create(
-            application_type="CASTE",
-            status="SUBMITTED"
+def make_citizen(username='citizen1'):
+    return User.objects.create_user(
+        username=username, password='pass1234', role=User.CITIZEN,
+        first_name='Test', last_name='Citizen'
+    )
+
+def make_officer(username='officer1'):
+    user = User.objects.create_user(
+        username=username, password='pass1234', role=User.OFFICER,
+        first_name='Test', last_name='Officer'
+    )
+    profile = OfficerProfile.objects.create(
+        user=user, designation='Revenue Officer',
+        workload_count=0, is_active=True
+    )
+    return user, profile
+
+def make_application(citizen, cert_type='CASTE'):
+    return CertificateApplication.objects.create(
+        citizen=citizen,
+        certificate_type=cert_type,
+        applicant_name='Test Applicant',
+        applicant_dob='2000-01-01',
+        applicant_gender='Male',
+        applicant_phone='9999999999',
+        applicant_address='Test Address, Indore, MP',
+        aadhar_number='123456789012',
+        status=CertificateApplication.SUBMITTED,
+    )
+
+
+class CertificateApplicationModelTest(TestCase):
+
+    def setUp(self):
+        self.citizen = make_citizen()
+        self.officer_user, self.profile = make_officer()
+        self.app = make_application(self.citizen)
+
+    def test_application_created_with_submitted_status(self):
+        self.assertEqual(self.app.status, CertificateApplication.SUBMITTED)
+
+    def test_str_representation(self):
+        self.assertIn('Test Applicant', str(self.app))
+        self.assertIn('CASTE', str(self.app))
+
+    def test_is_overdue_false_when_not_assigned(self):
+        self.assertFalse(self.app.is_overdue())
+
+    def test_is_overdue_false_when_due_date_in_future(self):
+        self.app.status = CertificateApplication.ASSIGNED
+        self.app.due_date = timezone.now() + timedelta(days=3)
+        self.app.save()
+        self.assertFalse(self.app.is_overdue())
+
+    def test_is_overdue_true_when_due_date_passed(self):
+        self.app.status = CertificateApplication.ASSIGNED
+        self.app.due_date = timezone.now() - timedelta(hours=1)
+        self.app.save()
+        self.assertTrue(self.app.is_overdue())
+
+    def test_days_remaining_returns_none_when_no_due_date(self):
+        self.assertIsNone(self.app.days_remaining())
+
+    def test_days_remaining_returns_correct_value(self):
+        self.app.status = CertificateApplication.ASSIGNED
+        self.app.due_date = timezone.now() + timedelta(days=5)
+        self.app.save()
+        remaining = self.app.days_remaining()
+        self.assertIsNotNone(remaining)
+        self.assertGreaterEqual(remaining, 4)
+
+    def test_ordering_is_by_submitted_date_descending(self):
+        app2 = make_application(self.citizen, 'INCOME')
+        apps = CertificateApplication.objects.all()
+        self.assertEqual(apps[0].id, app2.id)
+
+
+class AssignmentServiceTest(TestCase):
+
+    def setUp(self):
+        self.citizen = make_citizen()
+        self.officer_user, self.profile = make_officer()
+        self.app = make_application(self.citizen)
+
+    def test_assign_to_only_active_officer(self):
+        success, msg = AssignmentService.assign_application(self.app)
+        self.assertTrue(success)
+        self.app.refresh_from_db()
+        self.assertEqual(self.app.assigned_officer, self.profile)
+        self.assertEqual(self.app.status, CertificateApplication.ASSIGNED)
+
+    def test_assign_sets_due_date_7_days_from_now(self):
+        AssignmentService.assign_application(self.app)
+        self.app.refresh_from_db()
+        self.assertIsNotNone(self.app.due_date)
+        days_diff = (self.app.due_date - timezone.now()).days
+        self.assertGreaterEqual(days_diff, 6)
+
+    def test_assign_increments_officer_workload(self):
+        initial_workload = self.profile.workload_count
+        AssignmentService.assign_application(self.app)
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.workload_count, initial_workload + 1)
+
+    def test_assign_fails_when_no_active_officers(self):
+        self.profile.is_active = False
+        self.profile.save()
+        success, msg = AssignmentService.assign_application(self.app)
+        self.assertFalse(success)
+        self.assertIn('No active officers', msg)
+
+    def test_assign_picks_least_loaded_officer(self):
+        officer_user2, profile2 = make_officer('officer2')
+        self.profile.workload_count = 5
+        self.profile.save()
+        profile2.workload_count = 1
+        profile2.save()
+        AssignmentService.assign_application(self.app)
+        self.app.refresh_from_db()
+        self.assertEqual(self.app.assigned_officer, profile2)
+
+    def test_assign_creates_audit_log(self):
+        from automation.models import AuditLog
+        count_before = AuditLog.objects.count()
+        AssignmentService.assign_application(self.app)
+        self.assertEqual(AuditLog.objects.count(), count_before + 1)
+
+
+class ProcessingServiceTest(TestCase):
+
+    def setUp(self):
+        self.citizen = make_citizen()
+        self.officer_user, self.profile = make_officer()
+        self.app = make_application(self.citizen)
+        AssignmentService.assign_application(self.app)
+        self.app.refresh_from_db()
+
+    def test_approve_changes_status_to_approved(self):
+        ProcessingService.approve_application(self.app, self.officer_user, 'Approved')
+        self.app.refresh_from_db()
+        self.assertEqual(self.app.status, CertificateApplication.APPROVED)
+
+    def test_approve_saves_remarks(self):
+        ProcessingService.approve_application(self.app, self.officer_user, 'Documents verified')
+        self.app.refresh_from_db()
+        self.assertEqual(self.app.remarks, 'Documents verified')
+
+    def test_approve_sets_processed_date(self):
+        ProcessingService.approve_application(self.app, self.officer_user, '')
+        self.app.refresh_from_db()
+        self.assertIsNotNone(self.app.processed_date)
+
+    def test_approve_decrements_officer_workload(self):
+        workload_before = self.profile.workload_count
+        ProcessingService.approve_application(self.app, self.officer_user, '')
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.workload_count, workload_before - 1)
+
+    def test_reject_without_remarks_returns_false(self):
+        success, msg = ProcessingService.reject_application(self.app, self.officer_user, '')
+        self.assertFalse(success)
+        self.assertIn('mandatory', msg)
+
+    def test_reject_without_remarks_does_not_change_status(self):
+        ProcessingService.reject_application(self.app, self.officer_user, '')
+        self.app.refresh_from_db()
+        self.assertNotEqual(self.app.status, CertificateApplication.REJECTED)
+
+    def test_reject_with_remarks_changes_status(self):
+        success, msg = ProcessingService.reject_application(
+            self.app, self.officer_user, 'Insufficient documents'
         )
-        self.assertEqual(app.status, "SUBMITTED")
+        self.assertTrue(success)
+        self.app.refresh_from_db()
+        self.assertEqual(self.app.status, CertificateApplication.REJECTED)
 
-    def test_application_status_change(self):
-        app = CertificateApplication.objects.create(
-            application_type="INCOME",
-            status="SUBMITTED"
-        )
+    def test_reject_saves_remarks(self):
+        ProcessingService.reject_application(self.app, self.officer_user, 'Wrong details')
+        self.app.refresh_from_db()
+        self.assertEqual(self.app.remarks, 'Wrong details')
 
-        app.status = "APPROVED"
+    def test_reject_decrements_officer_workload(self):
+        workload_before = self.profile.workload_count
+        ProcessingService.reject_application(self.app, self.officer_user, 'Wrong details')
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.workload_count, workload_before - 1)
+
+
+class OverdueServiceTest(TestCase):
+
+    def setUp(self):
+        self.citizen = make_citizen()
+        self.officer_user, self.profile = make_officer()
+
+    def test_overdue_marks_past_due_applications(self):
+        app = make_application(self.citizen)
+        AssignmentService.assign_application(app)
+        app.refresh_from_db()
+        app.due_date = timezone.now() - timedelta(hours=2)
         app.save()
+        count = OverdueService.check_and_mark_overdue()
+        self.assertEqual(count, 1)
+        app.refresh_from_db()
+        self.assertEqual(app.status, CertificateApplication.OVERDUE)
 
-        self.assertEqual(app.status, "APPROVED")
+    def test_overdue_does_not_mark_future_due_date(self):
+        app = make_application(self.citizen)
+        AssignmentService.assign_application(app)
+        app.refresh_from_db()
+        app.due_date = timezone.now() + timedelta(days=3)
+        app.save()
+        count = OverdueService.check_and_mark_overdue()
+        self.assertEqual(count, 0)
+        app.refresh_from_db()
+        self.assertEqual(app.status, CertificateApplication.ASSIGNED)
+
+    def test_overdue_only_checks_assigned_applications(self):
+        approved_app = make_application(self.citizen, 'INCOME')
+        approved_app.status = CertificateApplication.APPROVED
+        approved_app.due_date = timezone.now() - timedelta(days=10)
+        approved_app.save()
+        count = OverdueService.check_and_mark_overdue()
+        self.assertEqual(count, 0)
+
+    def test_overdue_creates_audit_log(self):
+        from automation.models import AuditLog
+        app = make_application(self.citizen)
+        AssignmentService.assign_application(app)
+        app.refresh_from_db()
+        app.due_date = timezone.now() - timedelta(hours=1)
+        app.save()
+        count_before = AuditLog.objects.filter(action='OVERDUE').count()
+        OverdueService.check_and_mark_overdue()
+        self.assertEqual(AuditLog.objects.filter(action='OVERDUE').count(), count_before + 1)
+
+
+class CitizenViewTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.citizen = make_citizen()
+        self.client.login(username='citizen1', password='pass1234')
+
+    def test_choose_certificate_page_loads(self):
+        response = self.client.get(reverse('choose_certificate'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_track_applications_page_loads(self):
+        response = self.client.get(reverse('track_applications'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_track_applications_shows_only_own_applications(self):
+        other_citizen = make_citizen('other_citizen')
+        app_own = make_application(self.citizen)
+        app_other = make_application(other_citizen, 'INCOME')
+        response = self.client.get(reverse('track_applications'))
+        apps = response.context['applications']
+        self.assertIn(app_own, apps)
+        self.assertNotIn(app_other, apps)
+
+    def test_officer_page_blocked_for_citizen(self):
+        response = self.client.get(reverse('officer_list'))
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_admin_page_blocked_for_citizen(self):
+        response = self.client.get(reverse('admin_dashboard'))
+        self.assertNotEqual(response.status_code, 200)
+
+
+class OfficerViewTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.citizen = make_citizen()
+        self.officer_user, self.profile = make_officer()
+        self.client.login(username='officer1', password='pass1234')
+
+    def test_officer_list_page_loads(self):
+        response = self.client.get(reverse('officer_list'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_officer_sees_assigned_applications(self):
+        app = make_application(self.citizen)
+        AssignmentService.assign_application(app)
+        response = self.client.get(reverse('officer_list'))
+        self.assertIn('pending', response.context)
+
+    def test_citizen_page_blocked_for_officer(self):
+        response = self.client.get(reverse('admin_dashboard'))
+        self.assertNotEqual(response.status_code, 200)
