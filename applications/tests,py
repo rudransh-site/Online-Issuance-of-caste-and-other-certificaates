@@ -1,0 +1,22 @@
+from django.test import TestCase
+from applications.models import CertificateApplication
+
+class ApplicationTest(TestCase):
+
+    def test_application_creation(self):
+        app = CertificateApplication.objects.create(
+            application_type="CASTE",
+            status="SUBMITTED"
+        )
+        self.assertEqual(app.status, "SUBMITTED")
+
+    def test_application_status_change(self):
+        app = CertificateApplication.objects.create(
+            application_type="INCOME",
+            status="SUBMITTED"
+        )
+
+        app.status = "APPROVED"
+        app.save()
+
+        self.assertEqual(app.status, "APPROVED")

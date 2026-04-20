@@ -1,0 +1,33 @@
+from django.test import TestCase
+from django.utils import timezone
+from datetime import timedelta
+
+from applications.models import CertificateApplication
+from users.models import User
+
+class AutomationTest(TestCase):
+
+    def test_due_date_calculation(self):
+        assigned_date = timezone.now()
+        due_date = assigned_date + timedelta(days=7)
+
+        self.assertEqual((due_date - assigned_date).days, 7)
+
+    def test_assignment_logic_basic(self):
+        officer = User.objects.create_user(
+            username="officer1",
+            password="test123",
+            role="OFFICER"
+        )
+
+        app = CertificateApplication.objects.create(
+            application_type="CASTE",
+            status="SUBMITTED"
+        )
+
+        app.assigned_officer = officer
+        app.status = "ASSIGNED"
+        app.save()
+
+        self.assertEqual(app.assigned_officer, officer)
+        self.assertEqual(app.status, "ASSIGNED")
