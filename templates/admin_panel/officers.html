@@ -13,29 +13,29 @@
                     {% csrf_token %}
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:0.8rem;">First Name *</label>
-                        <input type="text" name="first_name" class="form-control" required style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                        <input type="text" name="first_name" class="form-control" required style="border-radius:10px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:0.8rem;">Last Name</label>
-                        <input type="text" name="last_name" class="form-control" style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                        <input type="text" name="last_name" class="form-control" style="border-radius:10px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:0.8rem;">Username *</label>
-                        <input type="text" name="username" class="form-control" required style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                        <input type="text" name="username" class="form-control" required style="border-radius:10px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:0.8rem;">Email</label>
-                        <input type="email" name="email" class="form-control" style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                        <input type="email" name="email" class="form-control" style="border-radius:10px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:0.8rem;">Designation</label>
-                        <input type="text" name="designation" class="form-control" value="Revenue Officer" style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                        <input type="text" name="designation" class="form-control" value="Revenue Officer" style="border-radius:10px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
                     </div>
                     <div class="mb-4">
                         <label class="form-label fw-semibold" style="font-size:0.8rem;">Password *</label>
-                        <input type="password" name="password" class="form-control" required style="border-radius:8px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
+                        <input type="password" name="password" class="form-control" required style="border-radius:10px;border:1.5px solid #e2e8f0;font-size:0.85rem;">
                     </div>
-                    <button type="submit" class="btn btn-navy w-100 fw-bold" style="border-radius:8px;">
+                    <button type="submit" class="btn btn-navy w-100 fw-bold" style="border-radius:10px;">
                         <i class="fas fa-user-plus me-2"></i>Create Officer
                     </button>
                 </form>
@@ -58,14 +58,14 @@
                             {% for officer in officers %}
                             <tr>
                                 <td>
-                                    <div style="font-weight:600;font-size:0.82rem;">{{ officer.user.get_full_name|default:officer.user.username }}</div>
-                                    <div style="font-size:0.72rem;color:#94a3b8;">@{{ officer.user.username }}</div>
+                                    <div style="font-weight:600;font-size:0.88rem;">{{ officer.user.get_full_name|default:officer.user.username }}</div>
+                                    <div style="font-size:0.78rem;color:#94a3b8;">@{{ officer.user.username }}</div>
                                     {% if officer.is_flagged %}<span class="badge bg-warning text-dark mt-1" style="font-size:0.6rem;"><i class="fas fa-star me-1"></i>High Performer</span>{% endif %}
                                     {% if officer.admin_remarks %}<div style="font-size:0.7rem;color:#64748b;margin-top:2px;font-style:italic;">{{ officer.admin_remarks|truncatechars:40 }}</div>{% endif %}
                                 </td>
                                 <td style="font-size:0.78rem;color:#64748b;">{{ officer.designation }}</td>
                                 <td><span class="badge" style="background:#fef3c7;color:#92400e;">{{ officer.workload_count }}</span></td>
-                                <td style="font-size:0.82rem;font-weight:600;">{{ officer.get_completion_rate }}%</td>
+                                <td style="font-size:0.88rem;font-weight:600;">{{ officer.get_completion_rate }}%</td>
                                 <td>
                                     {% if officer.is_active %}
                                     <span class="badge bg-success" style="font-size:0.65rem;">Active</span>
@@ -77,16 +77,16 @@
                                     <div class="d-flex gap-1 flex-wrap">
                                         <a href="{% url 'toggle_officer' officer.id %}"
                                             class="btn btn-sm {% if officer.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
-                                            style="border-radius:6px;font-size:0.68rem;padding:3px 8px;">
+                                            style="border-radius:10px;font-size:0.68rem;padding:3px 8px;">
                                             {% if officer.is_active %}Deactivate{% else %}Activate{% endif %}
                                         </a>
-                                        <button class="btn btn-sm btn-outline-warning" style="border-radius:6px;font-size:0.68rem;padding:3px 8px;"
+                                        <button class="btn btn-sm btn-outline-warning" style="border-radius:10px;font-size:0.68rem;padding:3px 8px;"
                                             onclick="document.getElementById('remarkModal{{ officer.id }}').style.display='flex'">
                                             <i class="fas fa-comment"></i>
                                         </button>
                                         <a href="{% url 'flag_officer' officer.id %}"
                                             class="btn btn-sm {% if officer.is_flagged %}btn-warning{% else %}btn-outline-secondary{% endif %}"
-                                            style="border-radius:6px;font-size:0.68rem;padding:3px 8px;"
+                                            style="border-radius:10px;font-size:0.68rem;padding:3px 8px;"
                                             onclick="return confirm('{% if officer.is_flagged %}Remove flag?{% else %}Flag as high performer?{% endif %}')">
                                             <i class="fas fa-star"></i>
                                         </a>
@@ -100,10 +100,10 @@
                                     <h6 style="font-family:'Noto Serif',serif;margin-bottom:16px;">Add Remark for {{ officer.user.username }}</h6>
                                     <form method="POST" action="{% url 'add_remark' officer.id %}">
                                         {% csrf_token %}
-                                        <textarea name="remark" class="form-control mb-3" rows="3" placeholder="Enter remark..." style="border-radius:8px;font-size:0.85rem;">{{ officer.admin_remarks }}</textarea>
+                                        <textarea name="remark" class="form-control mb-3" rows="3" placeholder="Enter remark..." style="border-radius:10px;font-size:0.85rem;">{{ officer.admin_remarks }}</textarea>
                                         <div class="d-flex gap-2">
-                                            <button type="submit" class="btn btn-navy flex-fill" style="border-radius:8px;font-size:0.82rem;">Save Remark</button>
-                                            <button type="button" class="btn btn-outline-secondary flex-fill" style="border-radius:8px;font-size:0.82rem;" onclick="document.getElementById('remarkModal{{ officer.id }}').style.display='none'">Cancel</button>
+                                            <button type="submit" class="btn btn-navy flex-fill" style="border-radius:10px;font-size:0.88rem;">Save Remark</button>
+                                            <button type="button" class="btn btn-outline-secondary flex-fill" style="border-radius:10px;font-size:0.88rem;" onclick="document.getElementById('remarkModal{{ officer.id }}').style.display='none'">Cancel</button>
                                         </div>
                                     </form>
                                 </div>

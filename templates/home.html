@@ -133,11 +133,11 @@
             background: #fff; border-radius: 14px;
             padding: 28px 24px; text-align: center;
             box-shadow: 0 2px 16px rgba(0,0,0,0.06);
-            border: 1px solid #e8edf2;
-            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1.5px solid #e8edf2;
+            transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
             height: 100%;
         }
-        .feature-card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .feature-card:hover { transform: translateY(-6px); box-shadow: 0 12px 36px rgba(0,0,0,0.12); border-color: var(--gold) !important; }
         .feature-icon {
             width: 60px; height: 60px;
             background: linear-gradient(135deg, var(--navy), #1a3a5e);
@@ -258,7 +258,7 @@
 
 <!-- Hero Section -->
 <section class="hero" id="home">
-    <div class="container">
+    <div class="container-xl">
         <div class="row align-items-center g-5">
             <div class="col-lg-7">
                 <div class="hero-badge">
@@ -330,7 +330,7 @@
 
 <!-- Features -->
 <section class="features-section" id="features">
-    <div class="container">
+    <div class="container-xl">
         <div class="text-center mb-5">
             <div class="section-divider"></div>
             <h2 class="section-title">Why Use This Portal?</h2>
@@ -385,7 +385,7 @@
 
 <!-- How It Works -->
 <section class="steps-section" id="how-it-works">
-    <div class="container">
+    <div class="container-xl">
         <div class="text-center mb-5">
             <div class="section-divider"></div>
             <h2 class="section-title">How It Works</h2>
@@ -426,7 +426,7 @@
 
 <!-- CTA -->
 <section class="cta-section">
-    <div class="container">
+    <div class="container-xl">
         <h3>Ready to Apply for Your Certificate?</h3>
         <p>Join thousands of citizens who have already applied online. Fast, simple, and transparent.</p>
         <a href="{% url 'register' %}" class="btn-cta">
@@ -440,7 +440,7 @@
 
 <!-- Contact Us Section -->
 <section style="padding:72px 0; background:#f8fafc;" id="contact-form">
-    <div class="container">
+    <div class="container-xl">
         <div class="text-center mb-5">
             <div class="section-divider"></div>
             <h2 class="section-title">Contact Us</h2>
@@ -529,7 +529,7 @@
 
 <!-- Footer -->
 <footer id="contact">
-    <div class="container">
+    <div class="container-xl">
         <div class="row g-4">
             <div class="col-md-4">
                 <h6>Certificate Monitoring System</h6>

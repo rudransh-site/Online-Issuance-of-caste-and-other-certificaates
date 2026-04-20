@@ -7,7 +7,7 @@
 <div class="card mb-3">
   <div class="card-body py-3 px-4">
     <form method="GET" class="d-flex gap-3 align-items-center flex-wrap">
-      <label style="font-size:0.82rem;font-weight:600;color:#374151;margin:0;">Filter by status:</label>
+      <label style="font-size:0.88rem;font-weight:600;color:#374151;margin:0;">Filter by status:</label>
       <select name="status" class="form-select" style="width:auto;font-size:0.83rem;border-radius:8px;" onchange="this.form.submit()">
         <option value="">All Statuses</option>
         <option value="SUBMITTED" {% if status_filter == 'SUBMITTED' %}selected{% endif %}>Submitted</option>
@@ -16,8 +16,8 @@
         <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Approved</option>
         <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Rejected</option>
       </select>
-      {% if status_filter %}<a href="{% url 'all_applications' %}" style="font-size:0.78rem;color:#94a3b8;text-decoration:none;">Clear filter</a>{% endif %}
-      <span class="ms-auto" style="font-size:0.78rem;color:#94a3b8;">Total: {{ total }} | Overdue: <strong style="color:#9f1239;">{{ overdue_count }}</strong></span>
+      {% if status_filter %}<a href="{% url 'all_applications' %}" style="font-size:0.83rem;color:#94a3b8;text-decoration:none;">Clear filter</a>{% endif %}
+      <span class="ms-auto" style="font-size:0.83rem;color:#94a3b8;">Total: {{ total }} | Overdue: <strong style="color:#9f1239;">{{ overdue_count }}</strong></span>
     </form>
   </div>
 </div>
@@ -37,14 +37,14 @@
           {% for app in applications %}
           <tr {% if app.status == 'OVERDUE' %}style="background:#fff5f5;"{% endif %}>
             <td><strong>#{{ app.id }}</strong></td>
-            <td style="font-size:0.82rem;">{{ app.get_certificate_type_display }}</td>
-            <td style="font-size:0.82rem;">{{ app.applicant_name }}</td>
-            <td style="font-size:0.78rem;color:#64748b;">{{ app.citizen.username }}</td>
-            <td style="font-size:0.78rem;color:#64748b;">
+            <td style="font-size:0.88rem;">{{ app.get_certificate_type_display }}</td>
+            <td style="font-size:0.88rem;">{{ app.applicant_name }}</td>
+            <td style="font-size:0.83rem;color:#64748b;">{{ app.citizen.username }}</td>
+            <td style="font-size:0.83rem;color:#64748b;">
               {% if app.assigned_officer %}{{ app.assigned_officer.user.get_full_name|default:app.assigned_officer.user.username }}{% else %}<span style="color:#ef4444;">Unassigned</span>{% endif %}
             </td>
-            <td style="font-size:0.78rem;color:#64748b;">{{ app.submitted_date|date:"d M Y" }}</td>
-            <td style="font-size:0.78rem;">
+            <td style="font-size:0.83rem;color:#64748b;">{{ app.submitted_date|date:"d M Y" }}</td>
+            <td style="font-size:0.83rem;">
               {% if app.due_date %}
                 <span style="color:{% if app.status == 'OVERDUE' %}#9f1239{% elif app.days_remaining is not None and app.days_remaining <= 2 %}#c9992a{% else %}#64748b{% endif %};">
                   {{ app.due_date|date:"d M Y" }}
@@ -52,11 +52,11 @@
               {% else %}—{% endif %}
             </td>
             <td>
-              {% if app.status == 'APPROVED' %}<span class="badge" style="background:#dcfce7;color:#166534;border-radius:6px;font-size:0.72rem;padding:3px 8px;">Approved</span>
-              {% elif app.status == 'REJECTED' %}<span class="badge" style="background:#fee2e2;color:#7f1d1d;border-radius:6px;font-size:0.72rem;padding:3px 8px;">Rejected</span>
-              {% elif app.status == 'OVERDUE' %}<span class="badge" style="background:#fce7f3;color:#9f1239;border-radius:6px;font-size:0.72rem;padding:3px 8px;">⚠ Overdue</span>
-              {% elif app.status == 'ASSIGNED' %}<span class="badge" style="background:#fef3c7;color:#92400e;border-radius:6px;font-size:0.72rem;padding:3px 8px;">Assigned</span>
-              {% else %}<span class="badge" style="background:#dbeafe;color:#1e3a8a;border-radius:6px;font-size:0.72rem;padding:3px 8px;">Submitted</span>{% endif %}
+              {% if app.status == 'APPROVED' %}<span class="badge" style="background:#dcfce7;color:#166534;border-radius:10px;font-size:0.78rem;padding:3px 8px;">Approved</span>
+              {% elif app.status == 'REJECTED' %}<span class="badge" style="background:#fee2e2;color:#7f1d1d;border-radius:10px;font-size:0.78rem;padding:3px 8px;">Rejected</span>
+              {% elif app.status == 'OVERDUE' %}<span class="badge" style="background:#fce7f3;color:#9f1239;border-radius:10px;font-size:0.78rem;padding:3px 8px;">⚠ Overdue</span>
+              {% elif app.status == 'ASSIGNED' %}<span class="badge" style="background:#fef3c7;color:#92400e;border-radius:10px;font-size:0.78rem;padding:3px 8px;">Assigned</span>
+              {% else %}<span class="badge" style="background:#dbeafe;color:#1e3a8a;border-radius:10px;font-size:0.78rem;padding:3px 8px;">Submitted</span>{% endif %}
             </td>
           </tr>
           {% empty %}

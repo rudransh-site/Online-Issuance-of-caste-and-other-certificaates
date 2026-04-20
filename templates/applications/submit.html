@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-lg-9">
+  <div class="col-xl-10 col-lg-11 col-12">
 
     <div class="mb-3">
       <a href="{% url 'choose_certificate' %}" style="color:#c9992a;text-decoration:none;font-size:0.83rem;">
@@ -17,7 +17,7 @@
       <div class="card-header-navy">
         <span><i class="fas fa-file-circle-plus me-2"></i>{{ cert_label }} — Application Form</span>
       </div>
-      <div class="card-body p-4">
+      <div class="card-body" style="padding:28px 32px;">
 
         {% if messages %}
           {% for msg in messages %}
@@ -29,22 +29,22 @@
           {% csrf_token %}
 
           <!-- Section: Personal Information -->
-          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;">
             <i class="fas fa-user me-1"></i> Personal Information
           </div>
           <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Full Name *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Full Name *</label>
               <input type="text" name="applicant_name" class="form-control" value="{{ form.applicant_name.value|default:'' }}" required placeholder="As per Aadhaar card">
               {% if form.applicant_name.errors %}<div class="text-danger" style="font-size:0.78rem;">{{ form.applicant_name.errors.0 }}</div>{% endif %}
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Date of Birth *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Date of Birth *</label>
               <input type="date" name="applicant_dob" class="form-control" value="{{ form.applicant_dob.value|default:'' }}" required>
               {% if form.applicant_dob.errors %}<div class="text-danger" style="font-size:0.78rem;">{{ form.applicant_dob.errors.0 }}</div>{% endif %}
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Gender *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Gender *</label>
               <select name="applicant_gender" class="form-select" required>
                 <option value="">— Select —</option>
                 <option value="Male" {% if form.applicant_gender.value == 'Male' %}selected{% endif %}>Male</option>
@@ -53,45 +53,44 @@
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Phone Number *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Phone Number *</label>
               <input type="tel" name="applicant_phone" class="form-control" value="{{ form.applicant_phone.value|default:'' }}" required placeholder="10-digit mobile number">
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Complete Address *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Complete Address *</label>
               <textarea name="applicant_address" class="form-control" rows="2" required placeholder="House No., Street, City, District, State, PIN">{{ form.applicant_address.value|default:'' }}</textarea>
             </div>
           </div>
 
           <!-- Section: Aadhaar -->
-          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;">
             <i class="fas fa-id-card me-1"></i> Aadhaar Verification
           </div>
           <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Aadhaar Number * <span style="color:#64748b;font-weight:400;">(12 digits)</span></label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Aadhaar Number * <span style="color:#64748b;font-weight:400;">(12 digits)</span></label>
               <input type="text" name="aadhar_number" class="form-control" value="{{ form.aadhar_number.value|default:'' }}" required placeholder="XXXX XXXX XXXX" maxlength="12" minlength="12" pattern="[0-9]{12}">
               {% if form.aadhar_number.errors %}<div class="text-danger" style="font-size:0.78rem;">{{ form.aadhar_number.errors.0 }}</div>{% endif %}
             </div>
             <div class="col-md-6">
-              <div style="font-size:0.72rem;color:#94a3b8;margin-top:32px;padding:12px 14px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
-                <i class="fas fa-shield-alt me-1" style="color:#c9992a;"></i>
-                Your Aadhaar number is used for identity verification only. No photo upload required.
-              </div>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Aadhaar Card Photo * <span style="color:#64748b;font-weight:400;">(JPG/PNG)</span></label>
+              <input type="file" name="aadhar_photo" class="form-control" accept="image/*" required>
+              <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;"><i class="fas fa-shield-alt me-1" style="color:#c9992a;"></i>Upload front side of your Aadhaar card for identity verification</div>
             </div>
           </div>
 
           <!-- Certificate-specific fields -->
           {% if cert_type == 'CASTE' %}
-          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;">
             <i class="fas fa-users me-1"></i> Caste Details
           </div>
           <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Caste Name *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Caste Name *</label>
               <input type="text" name="caste_name" class="form-control" value="{{ form.caste_name.value|default:'' }}" required placeholder="e.g. Chamar, Yadav, Brahmin">
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Category *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Category *</label>
               <select name="caste_category" class="form-select" required>
                 <option value="">— Select Category —</option>
                 <option value="SC" {% if form.caste_category.value == 'SC' %}selected{% endif %}>SC (Scheduled Caste)</option>
@@ -101,141 +100,141 @@
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Father's Name *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Father's Name *</label>
               <input type="text" name="father_name" class="form-control" value="{{ form.father_name.value|default:'' }}" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Purpose of Certificate</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Purpose of Certificate</label>
               <textarea name="purpose" class="form-control" rows="2" placeholder="e.g. School admission, Government job application">{{ form.purpose.value|default:'' }}</textarea>
             </div>
           </div>
           {% endif %}
 
           {% if cert_type == 'INCOME' %}
-          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;">
             <i class="fas fa-rupee-sign me-1"></i> Income Details
           </div>
           <div class="row g-3 mb-4">
             <div class="col-md-4">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Annual Income (₹) *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Annual Income (₹) *</label>
               <input type="number" name="annual_income" class="form-control" value="{{ form.annual_income.value|default:'' }}" required placeholder="e.g. 150000" min="0">
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Occupation *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Occupation *</label>
               <input type="text" name="occupation" class="form-control" value="{{ form.occupation.value|default:'' }}" required placeholder="e.g. Farmer, Labour, Self-employed">
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Purpose of Certificate</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Purpose of Certificate</label>
               <textarea name="income_purpose" class="form-control" rows="2" placeholder="e.g. Scholarship application">{{ form.income_purpose.value|default:'' }}</textarea>
             </div>
           </div>
           {% endif %}
 
           {% if cert_type == 'BIRTH' %}
-          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;">
             <i class="fas fa-baby me-1"></i> Birth Details
           </div>
           <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Place of Birth *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Place of Birth *</label>
               <input type="text" name="birth_place" class="form-control" value="{{ form.birth_place.value|default:'' }}" required placeholder="City, District, State">
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Hospital/Nursing Home Name</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Hospital/Nursing Home Name</label>
               <input type="text" name="hospital_name" class="form-control" value="{{ form.hospital_name.value|default:'' }}" placeholder="If born at hospital">
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Mother's Name *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Mother's Name *</label>
               <input type="text" name="mother_name" class="form-control" value="{{ form.mother_name.value|default:'' }}" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Father's Name *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Father's Name *</label>
               <input type="text" name="birth_father_name" class="form-control" value="{{ form.birth_father_name.value|default:'' }}" required>
             </div>
           </div>
           {% endif %}
 
           {% if cert_type == 'DEATH' %}
-          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;">
             <i class="fas fa-dove me-1"></i> Death Details
           </div>
           <div class="row g-3 mb-4">
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Name of Deceased *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Name of Deceased *</label>
               <input type="text" name="deceased_name" class="form-control" value="{{ form.deceased_name.value|default:'' }}" required>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Date of Death *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Date of Death *</label>
               <input type="date" name="death_date" class="form-control" value="{{ form.death_date.value|default:'' }}" required>
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Place of Death *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Place of Death *</label>
               <input type="text" name="death_place" class="form-control" value="{{ form.death_place.value|default:'' }}" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Cause of Death</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Cause of Death</label>
               <input type="text" name="cause_of_death" class="form-control" value="{{ form.cause_of_death.value|default:'' }}" placeholder="e.g. Cardiac arrest">
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Informant Name *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Informant Name *</label>
               <input type="text" name="informant_name" class="form-control" value="{{ form.informant_name.value|default:'' }}" required placeholder="Person filing this form">
             </div>
             <div class="col-md-3">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Relation to Deceased *</label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Relation to Deceased *</label>
               <input type="text" name="relation_to_deceased" class="form-control" value="{{ form.relation_to_deceased.value|default:'' }}" required placeholder="e.g. Son, Daughter">
             </div>
           </div>
           {% endif %}
 
           <!-- Supporting Document Upload -->
-          <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c9992a;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;">
             <i class="fas fa-paperclip me-1"></i> Supporting Documents
           </div>
 
           {% if cert_type == 'CASTE' %}
           <div style="background:#fef9c3;border-left:3px solid #c9992a;border-radius:6px;padding:10px 14px;font-size:0.82rem;color:#374151;margin-bottom:14px;">
             <i class="fas fa-info-circle me-2" style="color:#c9992a;"></i>
-            <strong>What to upload:</strong> A caste certificate from your Gram Panchayat, Ward Officer, or previously issued school/employer certificate as proof.
+            <strong>What to upload:</strong> A caste certificate from your Gram Panchayat, Ward Officer, or previously issued school/employer certificate as proof.<br><br><i class="fas fa-file-signature me-1" style="color:#c9992a;font-size:0.78rem;"></i><strong style="color:#92400e;">First time applicant?</strong> Upload a self-declaration affidavit stating your caste and category, signed and attested by a local authority or Gazetted Officer.
           </div>
           {% elif cert_type == 'INCOME' %}
           <div style="background:#fef9c3;border-left:3px solid #c9992a;border-radius:6px;padding:10px 14px;font-size:0.82rem;color:#374151;margin-bottom:14px;">
             <i class="fas fa-info-circle me-2" style="color:#c9992a;"></i>
-            <strong>What to upload:</strong> Your previous year Income Tax Return (ITR) filing, salary slip, or Form 16 as income proof.
+            <strong>What to upload:</strong> Your previous year Income Tax Return (ITR) filing, salary slip, or Form 16 as income proof.<br><br><i class="fas fa-file-signature me-1" style="color:#c9992a;font-size:0.78rem;"></i><strong style="color:#92400e;">No formal income proof?</strong> Upload a self-declaration affidavit stating your annual income and occupation, signed and attested. Accepted for first-time applicants with no prior documentation.
           </div>
           {% elif cert_type == 'BIRTH' %}
           <div style="background:#fef9c3;border-left:3px solid #c9992a;border-radius:6px;padding:10px 14px;font-size:0.82rem;color:#374151;margin-bottom:14px;">
             <i class="fas fa-info-circle me-2" style="color:#c9992a;"></i>
-            <strong>What to upload:</strong> The birth record certificate issued by the hospital or nursing home where the birth took place.
+            <strong>What to upload:</strong> The birth record certificate issued by the hospital or nursing home where the birth took place.<br><br><i class="fas fa-file-signature me-1" style="color:#c9992a;font-size:0.78rem;"></i><strong style="color:#92400e;">Born at home or no hospital record?</strong> Upload a self-declaration affidavit from parents stating the date, place, and circumstances of birth, attested by a Ward Officer or local authority.
           </div>
           {% elif cert_type == 'DEATH' %}
           <div style="background:#fef9c3;border-left:3px solid #c9992a;border-radius:6px;padding:10px 14px;font-size:0.82rem;color:#374151;margin-bottom:14px;">
             <i class="fas fa-info-circle me-2" style="color:#c9992a;"></i>
-            <strong>What to upload:</strong> The death certificate issued by the hospital or morgue confirming the death.
+            <strong>What to upload:</strong> The death certificate issued by the hospital or morgue confirming the death.<br><br><i class="fas fa-file-signature me-1" style="color:#c9992a;font-size:0.78rem;"></i><strong style="color:#92400e;">No hospital or morgue record?</strong> Upload a self-declaration affidavit from next of kin stating the date, place, and cause of death, attested by a local authority or two witnesses.
           </div>
           {% endif %}
 
           <div class="row g-3 mb-4">
             <div class="col-md-6">
               {% if cert_type == 'CASTE' %}
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Caste Proof Document * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Caste Proof / Affidavit * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
               <input type="file" name="support_doc_1" class="form-control" accept="image/*,.pdf" required>
               <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">Gram Panchayat / Ward Officer / School certificate</div>
               {% elif cert_type == 'INCOME' %}
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Income Proof Document * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Income Proof / Affidavit * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
               <input type="file" name="support_doc_1" class="form-control" accept="image/*,.pdf" required>
               <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">ITR filing / Salary slip / Form 16</div>
               {% elif cert_type == 'BIRTH' %}
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Hospital Birth Record * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Birth Record / Affidavit * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
               <input type="file" name="support_doc_1" class="form-control" accept="image/*,.pdf" required>
               <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">Certificate issued by hospital / nursing home</div>
               {% elif cert_type == 'DEATH' %}
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Death Certificate from Morgue/Hospital * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Death Record / Affidavit * <span style="color:#64748b;font-weight:400;">(JPG/PNG/PDF)</span></label>
               <input type="file" name="support_doc_1" class="form-control" accept="image/*,.pdf" required>
               <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">Certificate issued by hospital / morgue / municipal authority</div>
               {% endif %}
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold" style="font-size:0.82rem;">Additional Document <span style="color:#64748b;font-weight:400;">(Optional)</span></label>
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Additional Document <span style="color:#64748b;font-weight:400;">(Optional)</span></label>
               <input type="file" name="support_doc_2" class="form-control" accept="image/*,.pdf">
               <div style="font-size:0.72rem;color:#94a3b8;margin-top:4px;">Any additional supporting proof</div>
             </div>

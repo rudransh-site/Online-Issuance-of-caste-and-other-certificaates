@@ -62,7 +62,7 @@
                         <td>{{ app.applicant_name }}</td>
                         <td style="color:#dc2626;font-weight:600;">{{ app.due_date|date:"d M Y" }} <i class="fas fa-clock ms-1"></i></td>
                         <td>
-                            <a href="{% url 'officer_detail' app.id %}" class="btn btn-sm" style="background:#dc2626;color:#fff;border-radius:6px;font-size:0.72rem;">
+                            <a href="{% url 'officer_detail' app.id %}" class="btn btn-sm" style="background:#dc2626;color:#fff;border-radius:10px;font-size:0.78rem;">
                                 <i class="fas fa-gavel me-1"></i>Process Now
                             </a>
                         </td>
@@ -78,7 +78,7 @@
 <div class="card mb-4">
     <div class="card-header-navy" style="background:#92400e;">
         <span><i class="fas fa-clock me-2"></i>Pending Applications</span>
-        <span style="font-size:0.72rem;opacity:0.8;">{{ pending.count }} pending</span>
+        <span style="font-size:0.78rem;opacity:0.8;">{{ pending.count }} pending</span>
     </div>
     <div class="card-body p-0">
         {% if pending %}
@@ -109,7 +109,7 @@
                             {% endwith %}
                         </td>
                         <td>
-                            <a href="{% url 'officer_detail' app.id %}" class="btn btn-sm btn-navy" style="border-radius:6px;font-size:0.72rem;padding:4px 10px;">
+                            <a href="{% url 'officer_detail' app.id %}" class="btn btn-sm btn-navy" style="border-radius:10px;font-size:0.78rem;padding:4px 10px;">
                                 <i class="fas fa-gavel me-1"></i>Review
                             </a>
                         </td>
@@ -129,7 +129,7 @@
 <div class="card">
     <div class="card-header-navy" style="background:#166534;">
         <span><i class="fas fa-check-double me-2"></i>Processed Applications</span>
-        <span style="font-size:0.72rem;opacity:0.8;">{{ approved.count }} approved · {{ rejected.count }} rejected</span>
+        <span style="font-size:0.78rem;opacity:0.8;">{{ approved.count }} approved · {{ rejected.count }} rejected</span>
     </div>
     <div class="card-body p-0">
         {% if approved or rejected %}
